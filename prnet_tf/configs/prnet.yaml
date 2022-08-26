@@ -1,0 +1,28 @@
+# general setting
+batch_size: 64
+input_size: 256
+num_workers: 0
+ch_size: 3
+sub_name: 'prnet'  # prnet
+pretrain_name: 
+
+# dataset setting
+train_dataset:
+    name: '300WLP'
+    path: '/mnt/sata/data/300W_LP_UV'
+    num_samples: 61225 #122450
+
+# training setting
+epoch: 100
+
+lr_G: !!float 1e-4
+lr_steps: [100000, 200000, 300000, 400000]
+lr_rate: 0.5
+
+adam_beta1_G: 0.9
+adam_beta2_G: 0.99
+
+log_steps: 10
+save_steps: 100
+
+uv_weight_mask: './data/uv-data/uv_weight_mask.png'

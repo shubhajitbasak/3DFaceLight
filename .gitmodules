@@ -1,0 +1,3 @@
+[submodule "prnet_tf/face3d"]
+	path = prnet_tf/face3d
+	url = https://github.com/YadiraF/face3d.git

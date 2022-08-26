@@ -1,0 +1,205 @@
+TensorFlow: 2.6.0
+Model: "PRNet_Model"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+input_image (InputLayer)     [(None, 256, 256, 3)]     0         
+_________________________________________________________________
+conv2d (Conv2D)              (None, 256, 256, 16)      784       
+_________________________________________________________________
+resblock_1 (ResBlock)        (None, 128, 128, 32)      5728      
+_________________________________________________________________
+resblock_2 (ResBlock)        (None, 128, 128, 32)      5440      
+_________________________________________________________________
+resblock_3 (ResBlock)        (None, 64, 64, 64)        22208     
+_________________________________________________________________
+resblock_4 (ResBlock)        (None, 64, 64, 64)        21120     
+_________________________________________________________________
+resblock_5 (ResBlock)        (None, 32, 32, 128)       87424     
+_________________________________________________________________
+resblock_6 (ResBlock)        (None, 32, 32, 128)       83200     
+_________________________________________________________________
+resblock_7 (ResBlock)        (None, 16, 16, 256)       346880    
+_________________________________________________________________
+resblock_8 (ResBlock)        (None, 16, 16, 256)       330240    
+_________________________________________________________________
+resblock_9 (ResBlock)        (None, 8, 8, 512)         1381888   
+_________________________________________________________________
+resblock_10 (ResBlock)       (None, 8, 8, 512)         1315840   
+_________________________________________________________________
+deconv_1 (DeconvUnit)        (None, 8, 8, 512)         4194816   
+_________________________________________________________________
+deconv_2 (DeconvUnit)        (None, 16, 16, 256)       2097408   
+_________________________________________________________________
+deconv_3 (DeconvUnit)        (None, 16, 16, 256)       1048832   
+_________________________________________________________________
+deconv_4 (DeconvUnit)        (None, 16, 16, 256)       1048832   
+_________________________________________________________________
+deconv_5 (DeconvUnit)        (None, 32, 32, 128)       524416    
+_________________________________________________________________
+deconv_6 (DeconvUnit)        (None, 32, 32, 128)       262272    
+_________________________________________________________________
+deconv_7 (DeconvUnit)        (None, 32, 32, 128)       262272    
+_________________________________________________________________
+deconv_8 (DeconvUnit)        (None, 64, 64, 64)        131136    
+_________________________________________________________________
+deconv_9 (DeconvUnit)        (None, 64, 64, 64)        65600     
+_________________________________________________________________
+deconv_10 (DeconvUnit)       (None, 64, 64, 64)        65600     
+_________________________________________________________________
+deconv_11 (DeconvUnit)       (None, 128, 128, 32)      32800     
+_________________________________________________________________
+deconv_12 (DeconvUnit)       (None, 128, 128, 32)      16416     
+_________________________________________________________________
+deconv_13 (DeconvUnit)       (None, 256, 256, 16)      8208      
+_________________________________________________________________
+deconv_14 (DeconvUnit)       (None, 256, 256, 16)      4112      
+_________________________________________________________________
+deconv_15 (DeconvUnit)       (None, 256, 256, 3)       771       
+_________________________________________________________________
+deconv_16 (DeconvUnit)       (None, 256, 256, 3)       147       
+_________________________________________________________________
+deconv_out (DeconvUnit)      (None, 256, 256, 3)       147       
+=================================================================
+Total params: 13,364,537
+Trainable params: 13,356,601
+Non-trainable params: 7,936
+_________________________________________________________________
+
+**********************************************************************************************
+
+
+==================Model Analysis Report======================
+
+Doc:
+scope: The nodes in the model graph are organized by their names, which is hierarchical like filesystem.
+flops: Number of float operations. Note: Please read the implementation for the math behind it.
+
+Profile:
+node name | # float_ops
+_TFProfRoot (--/8.27b flops)
+  deconv_4/conv2d_transpose_3/conv2d_transpose (536.87m/536.87m flops)
+  deconv_1/conv2d_transpose/conv2d_transpose (536.87m/536.87m flops)
+  deconv_6/conv2d_transpose_5/conv2d_transpose (536.87m/536.87m flops)
+  deconv_10/conv2d_transpose_9/conv2d_transpose (536.87m/536.87m flops)
+  deconv_3/conv2d_transpose_2/conv2d_transpose (536.87m/536.87m flops)
+  deconv_7/conv2d_transpose_6/conv2d_transpose (536.87m/536.87m flops)
+  deconv_12/conv2d_transpose_11/conv2d_transpose (536.87m/536.87m flops)
+  deconv_14/conv2d_transpose_13/conv2d_transpose (536.87m/536.87m flops)
+  deconv_9/conv2d_transpose_8/conv2d_transpose (536.87m/536.87m flops)
+  deconv_5/conv2d_transpose_4/conv2d_transpose (268.44m/268.44m flops)
+  deconv_11/conv2d_transpose_10/conv2d_transpose (268.44m/268.44m flops)
+  deconv_2/conv2d_transpose_1/conv2d_transpose (268.44m/268.44m flops)
+  deconv_13/conv2d_transpose_12/conv2d_transpose (268.44m/268.44m flops)
+  deconv_8/conv2d_transpose_7/conv2d_transpose (268.44m/268.44m flops)
+  resblock_3/conv2d_11/Conv2D (134.22m/134.22m flops)
+  resblock_1/conv2d_3/Conv2D (134.22m/134.22m flops)
+  resblock_10/conv2d_39/Conv2D (134.22m/134.22m flops)
+  resblock_2/conv2d_7/Conv2D (134.22m/134.22m flops)
+  resblock_4/conv2d_15/Conv2D (134.22m/134.22m flops)
+  resblock_5/conv2d_19/Conv2D (134.22m/134.22m flops)
+  resblock_6/conv2d_23/Conv2D (134.22m/134.22m flops)
+  resblock_7/conv2d_27/Conv2D (134.22m/134.22m flops)
+  resblock_8/conv2d_31/Conv2D (134.22m/134.22m flops)
+  resblock_9/conv2d_35/Conv2D (134.22m/134.22m flops)
+  conv2d/Conv2D (100.66m/100.66m flops)
+  deconv_15/conv2d_transpose_14/conv2d_transpose (100.66m/100.66m flops)
+  resblock_9/conv2d_34/Conv2D (33.55m/33.55m flops)
+  resblock_3/conv2d_10/Conv2D (33.55m/33.55m flops)
+  resblock_7/conv2d_26/Conv2D (33.55m/33.55m flops)
+  resblock_5/conv2d_18/Conv2D (33.55m/33.55m flops)
+  resblock_1/conv2d_2/Conv2D (33.55m/33.55m flops)
+  deconv_16/conv2d_transpose_15/conv2d_transpose (18.87m/18.87m flops)
+  deconv_out/conv2d_transpose_16/conv2d_transpose (18.87m/18.87m flops)
+  resblock_6/conv2d_22/Conv2D (16.78m/16.78m flops)
+  resblock_2/conv2d_6/Conv2D (16.78m/16.78m flops)
+  resblock_2/conv2d_8/Conv2D (16.78m/16.78m flops)
+  resblock_3/conv2d_12/Conv2D (16.78m/16.78m flops)
+  resblock_3/conv2d_9/Conv2D (16.78m/16.78m flops)
+  resblock_4/conv2d_16/Conv2D (16.78m/16.78m flops)
+  resblock_5/conv2d_17/Conv2D (16.78m/16.78m flops)
+  resblock_5/conv2d_20/Conv2D (16.78m/16.78m flops)
+  resblock_4/conv2d_14/Conv2D (16.78m/16.78m flops)
+  resblock_6/conv2d_24/Conv2D (16.78m/16.78m flops)
+  resblock_7/conv2d_25/Conv2D (16.78m/16.78m flops)
+  resblock_7/conv2d_28/Conv2D (16.78m/16.78m flops)
+  resblock_8/conv2d_30/Conv2D (16.78m/16.78m flops)
+  resblock_8/conv2d_32/Conv2D (16.78m/16.78m flops)
+  resblock_9/conv2d_33/Conv2D (16.78m/16.78m flops)
+  resblock_9/conv2d_36/Conv2D (16.78m/16.78m flops)
+  resblock_10/conv2d_40/Conv2D (16.78m/16.78m flops)
+  resblock_1/conv2d_4/Conv2D (16.78m/16.78m flops)
+  resblock_1/conv2d_1/Conv2D (16.78m/16.78m flops)
+  resblock_10/conv2d_38/Conv2D (16.78m/16.78m flops)
+  deconv_14/conv2d_transpose_13/BiasAdd (1.05m/1.05m flops)
+  deconv_13/conv2d_transpose_12/BiasAdd (1.05m/1.05m flops)
+  resblock_1/conv2d_2/BiasAdd (1.05m/1.05m flops)
+  conv2d/BiasAdd (1.05m/1.05m flops)
+  resblock_3/conv2d_10/BiasAdd (524.29k/524.29k flops)
+  resblock_1/conv2d_1/BiasAdd (524.29k/524.29k flops)
+  deconv_11/conv2d_transpose_10/BiasAdd (524.29k/524.29k flops)
+  resblock_2/conv2d_8/BiasAdd (524.29k/524.29k flops)
+  deconv_12/conv2d_transpose_11/BiasAdd (524.29k/524.29k flops)
+  resblock_1/conv2d_4/BiasAdd (524.29k/524.29k flops)
+  deconv_9/conv2d_transpose_8/BiasAdd (262.14k/262.14k flops)
+  resblock_2/conv2d_6/BiasAdd (262.14k/262.14k flops)
+  deconv_10/conv2d_transpose_9/BiasAdd (262.14k/262.14k flops)
+  deconv_8/conv2d_transpose_7/BiasAdd (262.14k/262.14k flops)
+  resblock_1/conv2d_3/BiasAdd (262.14k/262.14k flops)
+  resblock_5/conv2d_18/BiasAdd (262.14k/262.14k flops)
+  resblock_4/conv2d_16/BiasAdd (262.14k/262.14k flops)
+  resblock_2/conv2d_7/BiasAdd (262.14k/262.14k flops)
+  resblock_3/conv2d_9/BiasAdd (262.14k/262.14k flops)
+  resblock_3/conv2d_12/BiasAdd (262.14k/262.14k flops)
+  deconv_16/conv2d_transpose_15/BiasAdd (196.61k/196.61k flops)
+  deconv_15/conv2d_transpose_14/BiasAdd (196.61k/196.61k flops)
+  deconv_out/conv2d_transpose_16/BiasAdd (196.61k/196.61k flops)
+  resblock_5/conv2d_17/BiasAdd (131.07k/131.07k flops)
+  deconv_6/conv2d_transpose_5/BiasAdd (131.07k/131.07k flops)
+  deconv_7/conv2d_transpose_6/BiasAdd (131.07k/131.07k flops)
+  resblock_7/conv2d_26/BiasAdd (131.07k/131.07k flops)
+  resblock_3/conv2d_11/BiasAdd (131.07k/131.07k flops)
+  resblock_6/conv2d_24/BiasAdd (131.07k/131.07k flops)
+  resblock_4/conv2d_15/BiasAdd (131.07k/131.07k flops)
+  deconv_5/conv2d_transpose_4/BiasAdd (131.07k/131.07k flops)
+  resblock_4/conv2d_14/BiasAdd (131.07k/131.07k flops)
+  resblock_5/conv2d_20/BiasAdd (131.07k/131.07k flops)
+  resblock_6/conv2d_22/BiasAdd (65.54k/65.54k flops)
+  resblock_7/conv2d_25/BiasAdd (65.54k/65.54k flops)
+  resblock_7/conv2d_28/BiasAdd (65.54k/65.54k flops)
+  deconv_2/conv2d_transpose_1/BiasAdd (65.54k/65.54k flops)
+  deconv_4/conv2d_transpose_3/BiasAdd (65.54k/65.54k flops)
+  resblock_5/conv2d_19/BiasAdd (65.54k/65.54k flops)
+  resblock_6/conv2d_23/BiasAdd (65.54k/65.54k flops)
+  resblock_9/conv2d_34/BiasAdd (65.54k/65.54k flops)
+  resblock_8/conv2d_32/BiasAdd (65.54k/65.54k flops)
+  deconv_3/conv2d_transpose_2/BiasAdd (65.54k/65.54k flops)
+  resblock_9/conv2d_36/BiasAdd (32.77k/32.77k flops)
+  resblock_10/conv2d_40/BiasAdd (32.77k/32.77k flops)
+  resblock_8/conv2d_31/BiasAdd (32.77k/32.77k flops)
+  resblock_9/conv2d_33/BiasAdd (32.77k/32.77k flops)
+  deconv_1/conv2d_transpose/BiasAdd (32.77k/32.77k flops)
+  resblock_8/conv2d_30/BiasAdd (32.77k/32.77k flops)
+  resblock_7/conv2d_27/BiasAdd (32.77k/32.77k flops)
+  resblock_9/conv2d_35/BiasAdd (16.38k/16.38k flops)
+  resblock_10/conv2d_39/BiasAdd (16.38k/16.38k flops)
+  resblock_10/conv2d_38/BiasAdd (16.38k/16.38k flops)
+
+======================End of Report==========================
+Flops: 4,135,690,240
+
+-------------------------------------------------------------
+
+NME(%) on AFLW 21 points -
+[ 0, 30] Mean: 4.721, Std: 2.129
+[30, 60] Mean: 5.320, Std: 2.414
+[60, 90] Mean: 6.154, Std: 2.692
+[ 0, 90] Mean: 5.398, Std: 0.588
+
+NME(%) on AFLW 2000-3D 68 points -
+[ 0, 30] Mean: 3.829, Std: 1.167
+[30, 60] Mean: 4.561, Std: 1.814
+[60, 90] Mean: 5.753, Std: 4.287
+[ 0, 90] Mean: 4.714, Std: 0.793
+
+-------------------------------------------------------------
