@@ -1,0 +1,64 @@
+# general setting
+batch_size: 64
+input_size: 256
+num_workers: 0
+ch_size: 3
+sub_name: 'prnet'  # prnet
+pretrain_name:
+
+# dataset setting
+train_dataset_params:
+    dataset_name: '300wlpuv'
+    dataset_path: '/mnt/sata/data/300W_LP_UV'
+    num_samples: 61225 #122450
+    loader_params:
+        batch_size: 24
+        shuffle : true
+        num_workers : 4
+        pin_memory : true
+    input_size : [200, 200]
+
+
+val_dataset_params:
+    dataset_name: '300WLP'
+    dataset_path: '/mnt/sata/data/300W_LP_UV'
+    num_samples: 61225 #122450
+    loader_params:
+        batch_size: 24
+        shuffle : true
+        num_workers : 4
+        pin_memory : true
+    input_size : [256, 256]
+# training setting
+epoch: 100
+
+lr_G: !!float 1e-4
+lr_steps: [100000, 200000, 300000, 400000]
+lr_rate: 0.5
+
+adam_beta1_G: 0.9
+adam_beta2_G: 0.99
+
+log_steps: 10
+save_steps: 100
+
+uv_weight_mask: './data/uv-data/uv_weight_mask.png'
+
+
+
+model_params:
+    model_name: "segmentation2d"
+    is_train: true
+    max_epochs: 40
+    lr: 0.01
+    export_path: ""
+    checkpoint_path: ""
+    load_checkpoint: -1
+    lr_policy: "step"
+    lr_decay_iters: 10
+
+visualization_params:
+    name: "2d segmentation"
+
+printout_freq: 10
+model_update_freq: 1
