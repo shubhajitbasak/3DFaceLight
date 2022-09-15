@@ -13,9 +13,9 @@ from time import time
 import matplotlib.pyplot as plt
 
 sys.path.append('../..')
-from face3d import face3d
-from face3d.face3d import mesh
-from face3d.face3d.morphable_model import MorphabelModel
+from prnet_tf.face3d import face3d
+from prnet_tf.face3d.face3d import mesh
+from prnet_tf.face3d.face3d.morphable_model import MorphabelModel
 
 
 def process_uv(uv_coords, uv_h=256, uv_w=256):
@@ -68,7 +68,8 @@ def run_posmap_300W_LP(bfm, image_path, mat_path, save_folder, uv_h=256, uv_w=25
     size = size * (np.random.rand() * 0.2 + 0.9)
 
     # crop and record the transform parameters
-    src_pts = np.array([[center[0] - size / 2, center[1] - size / 2], [center[0] - size / 2, center[1] + size / 2],
+    src_pts = np.array([[center[0] - size / 2, center[1] - size / 2],
+                        [center[0] - size / 2, center[1] + size / 2],
                         [center[0] + size / 2, center[1] - size / 2]])
     DST_PTS = np.array([[0, 0], [0, image_h - 1], [image_w - 1, 0]])
     tform = skimage.transform.estimate_transform('similarity', src_pts, DST_PTS)
@@ -115,8 +116,8 @@ if __name__ == '__main__':
     # image_path = 'Data/IBUG_image_008_1_0.jpg'
     # mat_path = 'Data/IBUG_image_008_1_0.mat'
 
-    input_path = '/mnt/fastssd/Shubhajit_stuff/MyDockerVolume/Data/300W_LP/'
-    output_path = '/mnt/fastssd/Shubhajit_stuff/MyDockerVolume/Data/300W_LP_UV/'
+    input_path = '/mnt/sata/data/300W_LP/'
+    output_path = '/mnt/sata/data/300W_LP_UV_new/'
 
     sub_folders = ['AFW', 'HELEN_Flip', 'IBUG_Flip', 'LFPW', 'AFW_Flip', 'HELEN', 'IBUG', 'LFPW_Flip']
 

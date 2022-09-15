@@ -16,8 +16,8 @@ Make sure to install mesh_core_cython in the local python environment by running
 ```shell
 # directory - face3d/mesh/cython
 pip install cython 
-python setup.py build_ext -I 
-python setup.py install
+python3 setup.py build_ext --inplace 
+python3 setup.py install
 ```
 
 * Point the BFM.mat and BFM_UV.mat in generate_posmap_300WLP.py

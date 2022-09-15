@@ -133,10 +133,10 @@ class PRN:
 
         # run our net
         cropped_pos = self.net_forward(cropped_image)
-        cropped_pos *= 255.
+        cropped_pos *= 255.  # (256, 256, 3)
 
         # restore 
-        cropped_vertices = np.reshape(cropped_pos, [-1, 3]).T
+        cropped_vertices = np.reshape(cropped_pos, [-1, 3]).T  # (3, 65536)
         z = cropped_vertices[2, :].copy() / tform.params[0, 0]
         cropped_vertices[2, :] = 1
         vertices = np.dot(np.linalg.inv(tform.params), cropped_vertices)
