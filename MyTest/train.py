@@ -1,7 +1,7 @@
 import argparse
 import os
 import time
-
+from torchsummary import summary
 import numpy as np
 import torch
 from torch import nn
@@ -13,6 +13,7 @@ from models.network import get_network
 from lr_scheduler import get_scheduler
 from utils.utils_logging import AverageMeter, init_logging
 from datasets.wlpuv_dataset import wlpuvDatasets
+from losses.wing_loss import WingLoss_1
 
 
 def main(config_file):
@@ -50,7 +51,7 @@ def main(config_file):
     # num_epochs = cfg.max_epochs
 
     net = get_network(cfg).to(local_rank)
-    # print(net)
+    summary(net, (3, 256, 256))
 
     net.train()
 
@@ -82,7 +83,7 @@ def main(config_file):
         'Loss': AverageMeter(),
     }
 
-    l1loss = nn.L1Loss()
+    # l1loss = nn.L1Loss()
 
     global_step = 0
 
@@ -94,6 +95,7 @@ def main(config_file):
             dloss = {}
             assert cfg.task == 0
             label_verts = value['vertices_filtered'].to(local_rank)
+            label_kpt = value['kpt'].to(local_rank)
             # label_points2d = value['points2d'].to(local_rank)
 
             # zero the parameter gradients
@@ -103,8 +105,15 @@ def main(config_file):
             preds = net(img)
             # pred_verts, pred_points2d = preds.split([1220 * 3, 1220 * 2], dim=1)
             pred_verts = preds.view(cfg.batch_size, 500, 3)
+            kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
+            pred_kpt = pred_verts[:,kpt_filer_index,:]
             # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
-            loss = F.l1_loss(pred_verts, label_verts)
+            L3 = WingLoss_1()
+            # loss1 = F.l1_loss(pred_verts, label_verts)
+            loss2 = F.mse_loss(pred_kpt, label_kpt)
+            loss3 = L3(pred_verts, label_verts)
+
+            loss = 1.5*loss3  # + 0.2*loss2
 
             # -------- backward + optimize --------
             loss.backward()
@@ -112,6 +121,7 @@ def main(config_file):
             scheduler.step()
 
             running_loss += loss.item() * cfg.batch_size
+            # print('batch loss :', loss.item())
 
         epoch_loss = running_loss / cfg.num_images
         print('epoch: {0} -> loss: {1} -> running loss: {2}'.format(epoch, loss.item(), epoch_loss))

@@ -18,7 +18,7 @@ from modules.utils import load_yaml, set_memory_growth
 from modules.cv_plot import plot_kpt, plot_vertices, plot_pose_box
 from modules.estimate_pose import estimate_pose
 
-flags.DEFINE_boolean('use_cam', False, 'demo with webcam')
+flags.DEFINE_boolean('use_cam', True, 'demo with webcam')
 flags.DEFINE_string('cfg_path', './configs/prnet.yaml', 'config file path')
 flags.DEFINE_string('gpu', '0', 'which gpu to use')
 flags.DEFINE_string('img_path', '/mnt/sata/data/AFLW2000-3D/AFLW2000', 'path to input image')

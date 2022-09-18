@@ -9,11 +9,8 @@ import cv2
 from skimage import transform as tf
 from scipy.io import loadmat
 
-print(os.getcwd())
-
 import matplotlib.pyplot as plt
 from MyTest.utils.plot_kp import plot_kpt_3d, plot_vertices, get_landmarks, get_vertices, plot_kpt_2d
-# from MyTest.utils.util import load_yaml
 
 from torch.utils import data
 from torch.utils.data import DataLoader
@@ -127,14 +124,21 @@ class wlpuvDatasets(data.Dataset):
         data_dict['Image'] = new_img
 
         # aug posmap
-        posmap = data_dict['Posmap']
-        vertices = np.reshape(posmap, [-1, 3]).T
-        z = vertices[2, :].copy() / tform.params[0, 0]
+        posmap = data_dict['Posmap']  # 256,256,3
+        vertices = np.reshape(posmap, [-1, 3]).T  # 3,65536
+        z = vertices[2, :].copy() / tform.params[0, 0]  # 65536,
         vertices[2, :] = 1
-        vertices = np.dot((tf_shift + (tform + tf_shift_inv)).params, vertices)
-        vertices = np.vstack((vertices[:2, :], z))
-        posmap = np.reshape(vertices.T, [self.posmap_size, self.posmap_size, 3])
+        vertices = np.dot((tf_shift + (tform + tf_shift_inv)).params, vertices)  # 3,65536
+        vertices = np.vstack((vertices[:2, :], z))  # 3,65536
+        posmap = np.reshape(vertices.T, [self.posmap_size, self.posmap_size, 3])  # 256,256,3
         data_dict['Posmap'] = posmap
+
+        # aug kpt_gt
+        # kpt_gt = data_dict['kpt_gt']
+        # kpt = kpt_gt.T
+        # kpt = np.r_[kpt,[np.ones(68)]]
+        # kpt = np.dot((tf_shift + (tform + tf_shift_inv)).params, kpt)
+        # data_dict['kpt_gt'] = kpt.T[:, 0:2]
 
         return data_dict
 
@@ -142,8 +146,14 @@ class wlpuvDatasets(data.Dataset):
         # get source image as x
         # get labels as y
         # data = np.load(self.datas_list[index], allow_pickle=True).item()
+        # print(self.datas_list[index])
+        # mat_path = self.datas_list[index].replace('.npy', '.mat').replace('300W_LP_UV', '300W_LP')
+        # mat = loadmat(mat_path)
+        # kpt_gt = mat['pt2d'].transpose()
+
         data = {'Image': cv2.imread(self.datas_list[index].replace('.npy', '.jpg')),
                 'Posmap': np.load(self.datas_list[index])}
+                # 'kpt_gt': kpt_gt}
         if self.is_aug:
             data = self.data_aug(data)
 
@@ -151,17 +161,13 @@ class wlpuvDatasets(data.Dataset):
 
         data['Image'] = transform((data['Image'] / 255.).astype(np.float32))
         data['Posmap'] = (data['Posmap'] / 255.).astype(np.float32)
-        # data['kpt'] = get_landmarks(data['Posmap'], self.uv_kpt_ind)
+        data['kpt'] = get_landmarks(data['Posmap'], self.uv_kpt_ind)
         vert = get_vertices(data['Posmap'], self.resolution_op, self.face_ind)
         data['vertices_filtered'] = vert[self.filtered_indexs]
         # data['kpt_filtered'] = vert[self.filtered_kpt]
         # data['kpt_filtered'] = data['vertices_filtered'][self.filtered_kpt_500]
 
-        mat_path = self.datas_list[index].replace('.npy', '.mat').replace('300W_LP_UV', '300W_LP')
-        mat = loadmat(mat_path)
-        kpt_gt = mat['pt2d'].transpose()
-
-        data['kpt_gt'] = kpt_gt
+        # data['kpt_gt'] = kpt_gt
 
         return data
 
@@ -171,11 +177,12 @@ class wlpuvDatasets(data.Dataset):
 
 
 if __name__ == '__main__':
-    # data_root = '/mnt/sata/data/300W_LP_UV'
-    config_file = '/mnt/sata/code/myGit/3DFaceLight/MyTest/config.yaml'
-    configuration = load_yaml(config_file)['train_dataset_params']
-
-    wlfwdataset = wlpuvDatasets(configuration)
+    os.chdir('../')
+    import importlib
+    config = importlib.import_module("MyTest.configs.config")
+    importlib.reload(config)
+    cfg = config.config
+    wlfwdataset = wlpuvDatasets(cfg)
     dataloader = DataLoader(wlfwdataset, batch_size=256, shuffle=True, num_workers=0, drop_last=False)
 
     for i, data in enumerate(dataloader):
@@ -184,10 +191,10 @@ if __name__ == '__main__':
         kpt = data['kpt'][0] * 255
         vertices_filtered = data['vertices_filtered'][0] * 255
         kpt_filtered = data['kpt_filtered'][0] * 255
-        kpt_gt = data['kpt_gt']
+        # kpt_gt = data['kpt_gt'][0].numpy()
 
         # x2 = x2.numpy()
-        img = img.numpy().astype(np.uint8)
+        img = img.permute(1, 2, 0).numpy().astype(np.uint8)
 
         kpt = kpt.numpy()
         vertices_filtered = vertices_filtered.numpy()
@@ -198,17 +205,20 @@ if __name__ == '__main__':
         result_list = [img,
                        plot_kpt_3d(img, kpt),
                        plot_kpt_3d(img, kpt_filtered),
-                       plot_vertices(img, vertices_filtered)]  # ,
+                       plot_vertices(img, vertices_filtered)]
+                       # plot_kpt_2d(img, kpt_gt)]  # ,
         # plot_vertices(x1, filtered_vertices)]
 
         cv2.imshow('Input', result_list[0])
         cv2.imshow('Sparse alignment', result_list[1])
         cv2.imshow('Sparse alignment GT', result_list[2])
         cv2.imshow('Dense alignment', result_list[3])
+        # cv2.imshow('Dense alignment1', result_list[4])
         cv2.moveWindow('Input', 0, 0)
         cv2.moveWindow('Sparse alignment', 500, 0)
         cv2.moveWindow('Sparse alignment GT', 1000, 0)
         cv2.moveWindow('Dense alignment', 1500, 0)
+        # cv2.moveWindow('Dense alignment1', 2000, 0)
 
         key = cv2.waitKey(0)
         if key == ord('q'):
