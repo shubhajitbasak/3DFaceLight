@@ -8,6 +8,7 @@ from benchmark_aflw2000 import ana as ana_aflw2000, calc_nme as calc_nme_aflw200
 from benchmark_aflw import ana as ana_aflw, calc_nme as calc_nme_aflw
 from utils.util import get_config
 from utils.utils_inference import process_input
+import timm
 
 
 def cal_nme_with_68kp(net, face_detector, kpt_filter, root, flist):
@@ -46,8 +47,9 @@ def main(args):
 
     # load PRNet model
     net = get_network(cfg).to(local_rank)
+    # net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
     # print(net)
-    net.load_state_dict(torch.load('checkpoints/net_39.pth'))
+    net.load_state_dict(torch.load('checkpoints/Sep20/net_39.pth'))
     net.eval()
 
     with torch.no_grad():

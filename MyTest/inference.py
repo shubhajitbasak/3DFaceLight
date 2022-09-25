@@ -7,15 +7,15 @@ import numpy as np
 from scipy.io import loadmat
 import torch
 import matplotlib.pyplot as plt
-
+import timm
 import utils.util
+from torchsummary import summary
 
 from utils.utils_inference import plot_kpt, plot_vertices, plot_pose_box
 from utils.utils_inference import estimate_pose, process_input, get_vertices, get_landmarks
 from utils.util import get_config
 
 from models.network import get_network
-
 
 
 def main(config_file):
@@ -28,11 +28,13 @@ def main(config_file):
         detector_path = 'data/net-data/mmod_human_face_detector.dat'
         face_detector = dlib.cnn_face_detection_model_v1(
             detector_path)
+    checkpoint_path = 'checkpoints/mobile_net/net_39.pth'
 
     # load PRNet model
-    net = get_network(cfg).to(local_rank)
+    # net = get_network(cfg).to(local_rank)
+    net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
     # print(net)
-    net.load_state_dict(torch.load('checkpoints/Sep17/net_39.pth'))
+    net.load_state_dict(torch.load(checkpoint_path))
     net.eval()
 
     # pts68_all_ori = _load('data/test-data/AFLW2000-3D.pts68.npy')
@@ -66,7 +68,11 @@ def main(config_file):
             key = cv2.waitKey(0)
             if key == ord('q'):
                 exit()
-
+            elif key == ord('s'):
+                save_path = os.path.dirname(checkpoint_path)
+                cv2.imwrite(os.path.join(save_path, os.path.basename(img_path)),
+                            np.concatenate(result_list, axis=1))
+                print("Result saved in {}".format(save_path))
     else:  # webcam demo
         cap = cv2.VideoCapture(0)
         start_time = time.time()

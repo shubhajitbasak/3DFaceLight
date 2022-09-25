@@ -7,7 +7,7 @@ config.task = 0
 config.dataset_name = 'wlpuv'
 config.dataset_path = '/mnt/sata/data/300W_LP_UV'
 # #    num_samples: 61225 #122450
-config.batch_size = 256
+config.batch_size = 128
 config.shuffle = True
 config.num_workers = 0
 config.pin_memory = True
@@ -64,6 +64,6 @@ config.lossw_project = 10.0
 
 # Evaluation
 
-config.use_cam = False
+config.use_cam = True
 config.eval_img_path = '/mnt/sata/data/AFLW2000-3D/AFLW2000'
 config.is_dlib = True
