@@ -62,8 +62,13 @@ config.lossw_bone3d = 10.0
 config.lossw_bone2d = 10.0
 config.lossw_project = 10.0
 
+# model
+
+config.model_name = 'mobilenetv2_100'
+config.N_CLASS = 500
+
 # Evaluation
 
-config.use_cam = True
+config.use_cam = False
 config.eval_img_path = '/mnt/sata/data/AFLW2000-3D/AFLW2000'
 config.is_dlib = True

@@ -5,6 +5,7 @@ import cv2
 from skimage.io import imread
 from skimage.transform import estimate_transform, warp
 from torchvision import transforms
+# import mediapipe as mp
 
 def isRotationMatrix(R):
     ''' checks if a matrix is a valid rotation matrix(whether orthogonal or not)
@@ -203,6 +204,9 @@ def process_input(input, model, face_detector, image_info=None):
     '''
     resolution_inp = 256
     resolution_op = 256
+
+    # mp_face_detection = mp.solutions.face_detection
+
     if isinstance(input, str):
         try:
             image = imread(input)
@@ -242,6 +246,11 @@ def process_input(input, model, face_detector, image_info=None):
         d = detected_faces[
             0].rect  # # only use the first detected face (assume that each
         # input image only contains one face)
+
+        # with mp_face_detection.FaceDetection(
+        #         model_selection=1, min_detection_confidence=0.5) as face_detection:
+        #     results = face_detection.process(image)
+
         left = d.left()
         right = d.right()
         top = d.top()

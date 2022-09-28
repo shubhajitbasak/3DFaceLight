@@ -8,6 +8,10 @@ Model inspired by -
 
 https://github.com/deepinsight/insightface/tree/master/reconstruction/jmlr 
 
+Also tested with mobilenetV2_100
+
+
+
 
 
 

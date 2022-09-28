@@ -6,16 +6,24 @@ import torch
 import timm
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+import datetime
 
 from utils.util import get_config
 from models.network import get_network
 from lr_scheduler import get_scheduler
 from utils.utils_logging import AverageMeter, init_logging
 from datasets.wlpuv_dataset import wlpuvDatasets
-from losses.wing_loss import WingLoss_1
+from losses.wing_loss import WingLoss, AdaptiveWingLoss
+from losses.gaussian_nll import Gaussian_NLL_Loss
 
 
 def main(config_file):
+
+    now = datetime.datetime.now()
+    chkFolder = now.strftime("%b%d")
+    if not os.path.exists(os.path.join('checkpoints/mobile_net', chkFolder)):
+        os.makedirs(os.path.join('checkpoints/mobile_net', chkFolder), exist_ok=True)
+
     cfg = get_config(config_file)  # parse_configuration(config_file)
 
     world_size = 1
@@ -84,6 +92,10 @@ def main(config_file):
 
     # l1loss = nn.L1Loss()
 
+    L3 = AdaptiveWingLoss()
+
+    # L4 = torch.nn.GaussianNLLLoss()
+
     global_step = 0
 
     for epoch in range(start_epoch, cfg.num_epochs):
@@ -102,15 +114,16 @@ def main(config_file):
 
             # -------- forward --------
             preds = net(img)
-            # pred_verts, pred_points2d = preds.split([1220 * 3, 1220 * 2], dim=1)
-            pred_verts = preds.view(cfg.batch_size, 500, 3)
+            # pred_verts, variance = preds.split([500 * 3, 500 * 1], dim=1)
+            pred_verts = preds
+            pred_verts = pred_verts.view(cfg.batch_size, 500, 3)
             kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
             pred_kpt = pred_verts[:,kpt_filer_index,:]
             # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
-            L3 = WingLoss_1()
             # loss1 = F.l1_loss(pred_verts, label_verts)
             loss2 = F.mse_loss(pred_kpt, label_kpt)
             loss3 = L3(pred_verts, label_verts)
+            # loss4 = L4(label_verts, pred_verts, variance)
 
             loss = 1.5*loss3 + 0.5*loss2
 
@@ -126,7 +139,7 @@ def main(config_file):
         print('epoch: {0} -> loss: {1} -> running loss: {2}'.format(epoch, loss.item(), epoch_loss))
 
         save_filename = 'net_%s.pth' % epoch
-        save_path = os.path.join('checkpoints/mobile_net', save_filename)
+        save_path = os.path.join('checkpoints/mobile_net', chkFolder, save_filename)
         torch.save(net.cpu().state_dict(), save_path)
         net.to(local_rank)
 

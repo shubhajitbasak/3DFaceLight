@@ -28,7 +28,7 @@ def main(config_file):
         detector_path = 'data/net-data/mmod_human_face_detector.dat'
         face_detector = dlib.cnn_face_detection_model_v1(
             detector_path)
-    checkpoint_path = 'checkpoints/mobile_net/net_39.pth'
+    checkpoint_path = 'checkpoints/mobile_net/Sep27/net_3.pth'
 
     # load PRNet model
     # net = get_network(cfg).to(local_rank)
