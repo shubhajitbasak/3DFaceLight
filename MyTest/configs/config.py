@@ -69,6 +69,6 @@ config.N_CLASS = 500
 
 # Evaluation
 
-config.use_cam = False
+config.use_cam = True
 config.eval_img_path = '/mnt/sata/data/AFLW2000-3D/AFLW2000'
 config.is_dlib = True

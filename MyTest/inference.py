@@ -21,6 +21,7 @@ from models.network import get_network
 def main(config_file):
     cfg = get_config(config_file)
     local_rank = args.local_rank
+    isGPU=False
 
     # ---- load detectors
     if cfg.is_dlib:
@@ -28,11 +29,17 @@ def main(config_file):
         detector_path = 'data/net-data/mmod_human_face_detector.dat'
         face_detector = dlib.cnn_face_detection_model_v1(
             detector_path)
-    checkpoint_path = 'checkpoints/mobile_net/Sep27/net_3.pth'
+    checkpoint_path = 'checkpoints/mobile_net/Sep22/net_39.pth'
+    # checkpoint_path = 'checkpoints/Sep20/net_39.pth'
 
     # load PRNet model
     # net = get_network(cfg).to(local_rank)
-    net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
+    if isGPU:
+        net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
+        # net = get_network(cfg).to(local_rank)
+    else:
+        net = timm.create_model('mobilenetv2_100', num_classes=1500)
+        # net = get_network(cfg)
     # print(net)
     net.load_state_dict(torch.load(checkpoint_path))
     net.eval()
@@ -47,7 +54,7 @@ def main(config_file):
             print(img_path)
 
             img = cv2.imread(img_path)
-            vertices = process_input(img_path, net, face_detector)
+            vertices = process_input(img_path, net, face_detector, cuda=isGPU)
             if vertices is None:
                 continue
 
@@ -81,7 +88,7 @@ def main(config_file):
         while (True):
             _, image = cap.read()
 
-            pos = process_input(image, net, face_detector)
+            pos = process_input(image, net, face_detector, cuda=isGPU)
             fps_str = 'FPS: %.2f' % (1 / (time.time() - start_time))
             start_time = time.time()
             cv2.putText(image, fps_str, (25, 25),

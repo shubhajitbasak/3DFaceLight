@@ -194,7 +194,7 @@ def plot_pose_box(image, P, kpt, color=(0, 255, 0), line_width=2):
     return image
 
 
-def process_input(input, model, face_detector, image_info=None):
+def process_input(input, model, face_detector, cuda=True, image_info=None):
     ''' process image with crop operation.
     Args:
         input: (h,w,3) array or str(image path). image value range:1~255.
@@ -272,10 +272,17 @@ def process_input(input, model, face_detector, image_info=None):
     cropped_image = transform(cropped_image.astype(np.float32)).unsqueeze(0)
 
     # run our net
-    cropped_pos = model(cropped_image.cuda())
-    cropped_pos *= 255.  # (1,1500)
-    cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
-    cropped_pos = cropped_pos.detach().cpu().numpy()
+    if cuda ==True:
+        cropped_pos = model(cropped_image.cuda())
+        cropped_pos *= 255.  # (1,1500)
+        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.detach().cpu().numpy()
+
+    else:
+        cropped_pos = model(cropped_image)
+        cropped_pos *= 255.  # (1,1500)
+        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.detach().numpy()
 
     # restore
     cropped_vertices = cropped_pos.T  # (3,500)
