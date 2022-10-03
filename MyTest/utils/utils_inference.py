@@ -5,6 +5,8 @@ import cv2
 from skimage.io import imread
 from skimage.transform import estimate_transform, warp
 from torchvision import transforms
+
+
 # import mediapipe as mp
 
 def isRotationMatrix(R):
@@ -194,6 +196,10 @@ def plot_pose_box(image, P, kpt, color=(0, 255, 0), line_width=2):
     return image
 
 
+def get_rect_mediapipe(image):
+    pass
+
+
 def process_input(input, model, face_detector, cuda=True, image_info=None):
     ''' process image with crop operation.
     Args:
@@ -272,7 +278,7 @@ def process_input(input, model, face_detector, cuda=True, image_info=None):
     cropped_image = transform(cropped_image.astype(np.float32)).unsqueeze(0)
 
     # run our net
-    if cuda ==True:
+    if cuda == True:
         cropped_pos = model(cropped_image.cuda())
         cropped_pos *= 255.  # (1,1500)
         cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
@@ -305,6 +311,7 @@ def get_landmarks(self, pos):
     kpt = pos[self.uv_kpt_ind[1, :], self.uv_kpt_ind[0, :], :]
     return kpt
 
+
 def get_vertices(self, pos):
     '''
     Args:
@@ -317,6 +324,7 @@ def get_vertices(self, pos):
 
     return vertices
 
+
 def get_colors_from_texture(self, texture):
     '''
     Args:
@@ -328,6 +336,7 @@ def get_colors_from_texture(self, texture):
     colors = all_colors[self.face_ind, :]
 
     return colors
+
 
 def get_colors(self, image, vertices):
     '''
