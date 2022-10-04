@@ -6,6 +6,7 @@ from skimage.io import imread
 from skimage.transform import estimate_transform, warp
 from torchvision import transforms
 
+from typing import Tuple, Union
 
 # import mediapipe as mp
 

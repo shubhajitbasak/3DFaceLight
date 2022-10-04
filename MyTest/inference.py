@@ -9,10 +9,10 @@ import torch
 import matplotlib.pyplot as plt
 import timm
 import utils.util
-from torchsummary import summary
+# from torchsummary import summary
 
 from utils.utils_inference import plot_kpt, plot_vertices, plot_pose_box
-from utils.utils_inference import estimate_pose, process_input, get_vertices, get_landmarks
+from utils.utils_inference import estimate_pose, process_input, get_vertices, get_landmarks, process_input_mp
 from utils.util import get_config
 
 from models.network import get_network
@@ -29,7 +29,11 @@ def main(config_file):
         detector_path = 'data/net-data/mmod_human_face_detector.dat'
         face_detector = dlib.cnn_face_detection_model_v1(
             detector_path)
-    checkpoint_path = 'checkpoints/mobile_net/Sep22/net_39.pth'
+
+    if cfg.is_mp:
+        import mediapipe as mp
+        mp_face_detection = mp.solutions.face_detection
+    checkpoint_path = 'checkpoints/mobilenet/net_39.pth'
     # checkpoint_path = 'checkpoints/Sep20/net_39.pth'
 
     # load PRNet model
@@ -54,7 +58,7 @@ def main(config_file):
             print(img_path)
 
             img = cv2.imread(img_path)
-            vertices = process_input(img_path, net, face_detector, cuda=isGPU)
+            vertices = process_input_mp(img_path, net, mp_face_detection, cuda=isGPU)
             if vertices is None:
                 continue
 
@@ -88,7 +92,7 @@ def main(config_file):
         while (True):
             _, image = cap.read()
 
-            pos = process_input(image, net, face_detector, cuda=isGPU)
+            pos = process_input_mp(image, net, mp_face_detection, cuda=isGPU)
             fps_str = 'FPS: %.2f' % (1 / (time.time() - start_time))
             start_time = time.time()
             cv2.putText(image, fps_str, (25, 25),
@@ -122,8 +126,8 @@ def main(config_file):
                 cv2.imshow('Sparse alignment', result_list[0])
                 cv2.imshow('Dense alignment', result_list[1])
                 # cv2.imshow('Pose', result_list[2])
-                cv2.moveWindow('Sparse alignment', 500, 0)
-                cv2.moveWindow('Dense alignment', 1000, 0)
+                cv2.moveWindow('Sparse alignment', 100, 0)
+                cv2.moveWindow('Dense alignment', 200, 0)
 
                 if key & 0xFF == ord('q'):
                     break
