@@ -352,3 +352,138 @@ def get_colors(self, image, vertices):
     colors = image[ind[:, 1], ind[:, 0], :]  # n x 3
 
     return colors
+
+def get_rect_mp(image, mp_face_detection):
+    def _normalized_to_pixel_coordinates(
+            normalized_x: float, normalized_y: float, image_width: int,
+            image_height: int) -> Union[None, Tuple[int, int]]:
+        """Converts normalized value pair to pixel coordinates."""
+
+        # Checks if the float value is between 0 and 1.
+        def is_valid_normalized_value(value: float) -> bool:
+            return (value > 0 or math.isclose(0, value)) and (value < 1 or
+                                                              math.isclose(1, value))
+
+        if not (is_valid_normalized_value(normalized_x) and
+                is_valid_normalized_value(normalized_y)):
+            # to do: Draw coordinates even if it's outside of the image bounds.
+            return None
+        x_px = min(math.floor(normalized_x * image_width), image_width - 1)
+        y_px = min(math.floor(normalized_y * image_height), image_height - 1)
+        return x_px, y_px
+
+    with mp_face_detection.FaceDetection(
+            model_selection=0, min_detection_confidence=0.5) as face_detection:
+        results = face_detection.process(image)  # cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        annotated_image = image.copy()
+        if results.detections:
+            for detection in results.detections:
+                # mp_drawing.draw_detection(annotated_image, detection)
+
+                image_rows, image_cols, _ = annotated_image.shape
+
+                location = detection.location_data
+                relative_bounding_box = location.relative_bounding_box
+
+                rect_start_point = _normalized_to_pixel_coordinates(
+                    relative_bounding_box.xmin, relative_bounding_box.ymin, image_cols,
+                    image_rows)
+                rect_end_point = _normalized_to_pixel_coordinates(
+                    relative_bounding_box.xmin + relative_bounding_box.width,
+                    relative_bounding_box.ymin + relative_bounding_box.height, image_cols,
+                    image_rows)
+
+                left = rect_start_point[0]
+                right = rect_end_point[0]
+                top = rect_start_point[1]
+                bottom = rect_end_point[1]
+
+                return left, right, top, bottom
+        else:
+            return None
+
+
+def process_input_mp(input, model, mp_face_detection, cuda=True, image_info=None):
+    ''' process image with crop operation.
+    Args:
+        input: (h,w,3) array or str(image path). image value range:1~255.
+        image_info(optional): the bounding box information of faces. if None, will use dlib to detect face.
+    Returns:
+        pos: the 3D position map. (256, 256, 3).
+    '''
+    resolution_inp = 256
+    resolution_op = 256
+
+    # mp_face_detection = mp.solutions.face_detection
+
+    if isinstance(input, str):
+        try:
+            image = imread(input)
+        except IOError:
+            print("error opening file: ", input)
+            return None
+    else:
+        image = input
+
+    if image.ndim < 3:
+        image = np.tile(image[:, :, np.newaxis], [1, 1, 3])
+
+    if image_info is not None:
+        if np.max(image_info.shape) > 4:  # key points to get bounding box
+            kpt = image_info
+            if kpt.shape[0] > 3:
+                kpt = kpt.T
+            left = np.min(kpt[0, :]);
+            right = np.max(kpt[0, :]);
+            top = np.min(kpt[1, :]);
+            bottom = np.max(kpt[1, :])
+        else:  # bounding box
+            bbox = image_info
+            left = bbox[0];
+            right = bbox[1];
+            top = bbox[2];
+            bottom = bbox[3]
+        old_size = (right - left + bottom - top) / 2
+        center = np.array([right - (right - left) / 2.0, bottom - (bottom - top) / 2.0])
+        size = int(old_size * 1.6)
+    else:
+        left, right, top, bottom = get_rect_mp(image, mp_face_detection)
+
+        old_size = (right - left + bottom - top) / 2
+        center = np.array([right - (right - left) / 2.0, bottom - (bottom - top) / 2.0])
+        size = int(old_size * 1.2)
+
+    # crop image
+    src_pts = np.array([[center[0] - size / 2, center[1] - size / 2], [center[0] - size / 2, center[1] + size / 2],
+                        [center[0] + size / 2, center[1] - size / 2]])
+    DST_PTS = np.array([[0, 0], [0, resolution_inp - 1], [resolution_inp - 1, 0]])
+    tform = estimate_transform('similarity', src_pts, DST_PTS)
+
+    image = image[:, :, ::-1] / 255.
+    cropped_image = warp(image, tform.inverse, output_shape=(resolution_inp, resolution_inp))
+
+    transform = transforms.ToTensor()
+    cropped_image = transform(cropped_image.astype(np.float32)).unsqueeze(0)
+
+    # run our net
+    if cuda == True:
+        cropped_pos = model(cropped_image.cuda())
+        cropped_pos *= 255.  # (1,1500)
+        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.detach().cpu().numpy()
+
+    else:
+        cropped_pos = model(cropped_image)
+        cropped_pos *= 255.  # (1,1500)
+        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.detach().numpy()
+
+    # restore
+    cropped_vertices = cropped_pos.T  # (3,500)
+    z = cropped_vertices[2, :].copy() / tform.params[0, 0]
+    cropped_vertices[2, :] = 1
+    vertices = np.dot(np.linalg.inv(tform.params), cropped_vertices)
+    vertices = np.vstack((vertices[:2, :], z))
+    # pos = np.reshape(vertices.T, [resolution_op, resolution_op, 3])
+
+    return vertices.T
