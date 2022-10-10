@@ -21,7 +21,7 @@ from models.network import get_network
 def main(config_file):
     cfg = get_config(config_file)
     local_rank = args.local_rank
-    isGPU=False
+    isGPU = True
 
     # ---- load detectors
     if cfg.is_dlib:
@@ -33,17 +33,17 @@ def main(config_file):
     if cfg.is_mp:
         import mediapipe as mp
         mp_face_detection = mp.solutions.face_detection
-    checkpoint_path = 'checkpoints/mobilenet/net_39.pth'
-    # checkpoint_path = 'checkpoints/Sep20/net_39.pth'
+    # checkpoint_path = 'checkpoints/mobilenet/net_39.pth'
+    checkpoint_path = 'checkpoints/Sep20/net_39.pth'
 
     # load PRNet model
     # net = get_network(cfg).to(local_rank)
     if isGPU:
-        net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
-        # net = get_network(cfg).to(local_rank)
+        # net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
+        net = get_network(cfg).to(local_rank)
     else:
-        net = timm.create_model('mobilenetv2_100', num_classes=1500)
-        # net = get_network(cfg)
+        # net = timm.create_model('mobilenetv2_100', num_classes=1500)
+        net = get_network(cfg)
     # print(net)
     net.load_state_dict(torch.load(checkpoint_path))
     net.eval()
@@ -86,6 +86,13 @@ def main(config_file):
                 print("Result saved in {}".format(save_path))
     else:  # webcam demo
         cap = cv2.VideoCapture(0)
+        # # to write to a video file
+        # frame_width = int(cap.get(3))
+        # frame_height = int(cap.get(4))
+        # out = cv2.VideoWriter('checkpoints/Sep20/outpy.avi',
+        #                       cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
+        #                       (frame_width*2, frame_height))
+
         start_time = time.time()
         count = 1
         # filtered_indexs = np.loadtxt('data/save-img/blender/vertices_500_sel_from_blender.txt').astype(int)
@@ -97,8 +104,8 @@ def main(config_file):
             start_time = time.time()
             cv2.putText(image, fps_str, (25, 25),
                         cv2.FONT_HERSHEY_DUPLEX, 0.75, (0, 255, 0), 2)
-            cv2.imshow('Input', image)
-            cv2.moveWindow('Input', 0, 0)
+            # cv2.imshow('Input', image)
+            # cv2.moveWindow('Input', 0, 0)
 
             key = cv2.waitKey(1)
             if pos is None:
@@ -119,9 +126,15 @@ def main(config_file):
                 # vertices_filtered = vertices[filtered_indexs]
 
                 result_list = [plot_kpt(image, kpt),
-                               plot_vertices(image, vertices) #,
+                               plot_vertices(image, vertices)  # ,
                                # plot_pose_box(image, camera_matrix, kpt)
                                ]
+                output = np.concatenate((image, result_list[1]), axis=-2)
+
+                # # write to a video file
+                # out.write(output)
+
+                cv2.imshow('Output', output)
 
                 cv2.imshow('Sparse alignment', result_list[0])
                 cv2.imshow('Dense alignment', result_list[1])
@@ -130,6 +143,9 @@ def main(config_file):
                 cv2.moveWindow('Dense alignment', 200, 0)
 
                 if key & 0xFF == ord('q'):
+                    cap.release()
+                    # out.release()
+                    cv2.destroyAllWindows()
                     break
 
 
