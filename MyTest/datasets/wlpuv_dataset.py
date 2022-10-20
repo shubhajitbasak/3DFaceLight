@@ -165,7 +165,7 @@ class wlpuvDatasets(data.Dataset):
         vert = get_vertices(data['Posmap'], self.resolution_op, self.face_ind)
         data['vertices_filtered'] = vert[self.filtered_indexs]
         # data['kpt_filtered'] = vert[self.filtered_kpt]
-        # data['kpt_filtered'] = data['vertices_filtered'][self.filtered_kpt_500]
+        data['kpt_filtered'] = data['vertices_filtered'][self.filtered_kpt_500]
 
         # data['kpt_gt'] = kpt_gt
 

@@ -24,11 +24,12 @@ config.num_verts = 500
 config.uv_kpt_ind = 'data/uv_kpt_ind.txt'  # 2 x 68 get kpt
 config.face_ind = 'data/face_ind.txt'  # get valid vertices in the pos map
 config.triangles = 'data/triangles.txt'
-config.filtered_indexs = 'data/vertices_500_sel_from_blender.txt'
+config.filtered_indexs = 'data/vertices_520_sel_from_blender.txt'
 config.filtered_68_kpt = 'data/vertices_68.txt'
-config.filtered_kpt_500 = 'data/vertices_68_fil_500.txt'
+config.filtered_kpt_500 = 'data/vertices_68_fil_520.txt'
 config.resolution_inp = 256
 config.resolution_op = 256
+config.keypoints = 520
 
 config.network = "resnet_jmlr"
 config.is_train = True

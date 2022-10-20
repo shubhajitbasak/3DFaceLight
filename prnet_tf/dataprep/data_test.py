@@ -27,19 +27,19 @@ def plot_GT_data():
         all_vertices = np.reshape(pos, [resolution_op ** 2, -1])  # 65536,3
         face_vertices = all_vertices[face_ind, :]  # 43867,3
         face_vertices_500 = face_vertices[face_ind_500, :]  # 500,3
-        kpt_index = []
-        for k in kpt:
-            kpt_index.append((face_vertices_500 == k).all(axis=1).nonzero()[0][0])
-        np.savetxt('../data/save-img/blender/vertices_68_fil_500_1.txt', np.asarray(kpt_index))
+        # kpt_index = []
+        # for k in kpt:
+        #     kpt_index.append((face_vertices_500 == k).all(axis=1).nonzero()[0][0])
+        # np.savetxt('../data/save-img/blender/vertices_68_fil_500_1.txt', np.asarray(kpt_index))
         kpt_from_vertices_500 = face_vertices_500[kpt_from_500, :]  # 68,3
         kpt_from_vertices_all = face_vertices[uv_kpt_ind, :]
 
         result_list = [img,
                        plot_kpt(img, kpt),
-                       plot_kpt(img, kpt_from_vertices_500),
-                       # plot_vertices(img, face_vertices),
-                       # plot_vertices(img, face_vertices_500),
-                       plot_kpt(img, kpt_from_vertices_all)
+                       # plot_kpt(img, kpt_from_vertices_500),
+                       plot_vertices(img, face_vertices),
+                       plot_vertices(img, face_vertices_500),
+                       # plot_kpt(img, kpt_from_vertices_all)
                        ]
 
         cv2.imshow('Input', result_list[0])

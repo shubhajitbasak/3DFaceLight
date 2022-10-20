@@ -18,7 +18,6 @@ from losses.gaussian_nll import Gaussian_NLL_Loss
 
 
 def main(config_file):
-
     now = datetime.datetime.now()
     chkFolder = now.strftime("%b%d")
     if not os.path.exists(os.path.join('checkpoints/mobile_net', chkFolder)):
@@ -57,7 +56,7 @@ def main(config_file):
     # starting_epoch = cfg.load_checkpoint + 1
     # num_epochs = cfg.max_epochs
 
-    net = timm.create_model('mobilenetv2_100', pretrained=True, num_classes=1500).to(local_rank)
+    net = timm.create_model('mobilenetv2_100', pretrained=True, num_classes=cfg.keypoints * 3).to(local_rank)
     summary(net, (3, 256, 256))
 
     net.train()
@@ -92,7 +91,7 @@ def main(config_file):
 
     # l1loss = nn.L1Loss()
 
-    L3 = AdaptiveWingLoss()
+    L3 = WingLoss()  # AdaptiveWingLoss()
 
     # L4 = torch.nn.GaussianNLLLoss()
 
@@ -116,16 +115,16 @@ def main(config_file):
             preds = net(img)
             # pred_verts, variance = preds.split([500 * 3, 500 * 1], dim=1)
             pred_verts = preds
-            pred_verts = pred_verts.view(cfg.batch_size, 500, 3)
+            pred_verts = pred_verts.view(cfg.batch_size, cfg.keypoints, 3)
             kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
-            pred_kpt = pred_verts[:,kpt_filer_index,:]
+            pred_kpt = pred_verts[:, kpt_filer_index, :]
             # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
             # loss1 = F.l1_loss(pred_verts, label_verts)
             loss2 = F.mse_loss(pred_kpt, label_kpt)
             loss3 = L3(pred_verts, label_verts)
             # loss4 = L4(label_verts, pred_verts, variance)
 
-            loss = 1.5*loss3 + 0.5*loss2
+            loss = 1.5 * loss3 + 0.5 * loss2
 
             # -------- backward + optimize --------
             loss.backward()
@@ -133,7 +132,7 @@ def main(config_file):
             scheduler.step()
 
             running_loss += loss.item() * cfg.batch_size
-            # print('batch loss :', loss.item())
+            print('batch loss :', loss.item())
 
         epoch_loss = running_loss / cfg.num_images
         print('epoch: {0} -> loss: {1} -> running loss: {2}'.format(epoch, loss.item(), epoch_loss))

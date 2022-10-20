@@ -18,7 +18,7 @@ from modules.utils import load_yaml, set_memory_growth
 from modules.cv_plot import plot_kpt, plot_vertices, plot_pose_box
 from modules.estimate_pose import estimate_pose
 
-flags.DEFINE_boolean('use_cam', True, 'demo with webcam')
+flags.DEFINE_boolean('use_cam', False, 'demo with webcam')
 flags.DEFINE_string('cfg_path', './configs/prnet.yaml', 'config file path')
 flags.DEFINE_string('gpu', '0', 'which gpu to use')
 flags.DEFINE_string('img_path', '/mnt/sata/data/AFLW2000-3D/AFLW2000', 'path to input image')
@@ -64,7 +64,7 @@ def main(_):
             #     np.int32)  # get valid vertices in the pos map
             # triangles = np.loadtxt('data/uv-data/triangles.txt').astype(np.int32)
 
-            filtered_indexs = np.loadtxt('data/save-img/blender/vertices_500_sel_from_blender.txt').astype(int)
+            filtered_indexs = np.loadtxt('data/save-img/blender/vertices_XXXX_sel_from_blender.txt').astype(int)
 
             # kpt1 = pos[uv_kpt_ind[1, :], uv_kpt_ind[0, :], :]
 
@@ -102,7 +102,7 @@ def main(_):
         cap = cv2.VideoCapture(0)
         start_time = time.time()
         count = 1
-        filtered_indexs = np.loadtxt('data/save-img/blender/vertices_500_sel_from_blender.txt').astype(int)
+        filtered_indexs = np.loadtxt('data/save-img/blender/vertices_XXXX_sel_from_blender.txt').astype(int)
         while (True):
             _, image = cap.read()
 
@@ -117,9 +117,9 @@ def main(_):
             key = cv2.waitKey(1)
             if pos is None:
                 cv2.waitKey(1)
-                cv2.destroyWindow('Sparse alignment')
+                # cv2.destroyWindow('Sparse alignment')
                 cv2.destroyWindow('Dense alignment')
-                cv2.destroyWindow('Pose')
+                # cv2.destroyWindow('Pose')
                 if key & 0xFF == ord('q'):
                     break
                 continue
@@ -134,12 +134,12 @@ def main(_):
                                plot_vertices(image, vertices_filtered),
                                plot_pose_box(image, camera_matrix, kpt)]
 
-                cv2.imshow('Sparse alignment', result_list[0])
+                # cv2.imshow('Sparse alignment', result_list[0])
                 cv2.imshow('Dense alignment', result_list[1])
-                cv2.imshow('Pose', result_list[2])
-                cv2.moveWindow('Sparse alignment', 500, 0)
+                # cv2.imshow('Pose', result_list[2])
+                # cv2.moveWindow('Sparse alignment', 500, 0)
                 cv2.moveWindow('Dense alignment', 1000, 0)
-                cv2.moveWindow('Pose', 1500, 0)
+                # cv2.moveWindow('Pose', 1500, 0)
 
                 if key & 0xFF == ord('s'):
                     image_name = 'prnet_cam_' + str(count)

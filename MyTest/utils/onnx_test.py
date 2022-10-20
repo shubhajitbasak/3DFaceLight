@@ -50,6 +50,7 @@ def exec_convert_onnx():
 
 def infer_onnx():
     import onnx
+    print(onnx.__version__   )
     onnx_model = onnx.load('../checkpoints/mobile_net/Sep22/mobilenet.onnx')
     onnx.checker.check_model(onnx_model)
     print('checked')
