@@ -51,11 +51,12 @@ def get_68_index_from500():
 
 
 def applyDelaunay():
-    vertices = np.loadtxt('../data/save-img/blender/vertices_boundary_sel_from_blender_bkp.txt')
-    vertices_68 = np.loadtxt('../data/save-img/blender/vertices_68.txt')
+    vertices = np.loadtxt('../data/save-img/blender/Iter2/vertices_boundary_sel_from_blender.txt')
+    vertices_68 = np.loadtxt('../data/save-img/blender/Iter2/vertices_68.txt')
     template = m3io.import_mesh('../data/save-img/blender/base_template.obj')
 
     vertices = vertices[0:].astype(int)
+    vertices_68 = vertices_68[0:].astype(int)
     # del_ind = [6,7]
     # vertices = np.delete(vertices,del_ind)
 
@@ -65,7 +66,10 @@ def applyDelaunay():
 
     vertices_2d = vertices_3d[:, :2]
 
-    fltr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19, 20, 23, 32]  # 17,18,23,30,31,
+    vertices_68_3d = template.points[vertices_68]
+    vertices_68_2d = vertices_68_3d[:, :2]
+
+    fltr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,  32]  # 19, 20, 23, # 17,18,23,30,31,
     fltrArr = np.take(vertices_2d, fltr, 0)
 
     # verts = []
@@ -76,11 +80,11 @@ def applyDelaunay():
     # verts = res = [*set(verts)]  # get unique values
     # verts = np.asarray(verts)
 
-    # plt.plot(vertices_2d[:, 0], vertices_2d[:, 1], 'ro')
+    # plt.plot(vertices_68_2d[:, 0], vertices_68_2d[:, 1], 'ro')
     # plt.figure()
     #
-    # plt.plot(fltrArr[:, 0], fltrArr[:, 1], 'ro')
-    # plt.figure()
+    plt.plot(fltrArr[:, 0], fltrArr[:, 1], 'ro')
+    plt.figure()
 
     vertices_2d_new = fltrArr.copy()
 
@@ -106,8 +110,8 @@ def applyDelaunay():
     # print('Total starting vertices : ', len(vertices))
     # print('Total vertices after {0} iteration of delaunay : '.format(delaunay_iter), len(vertices_68_2d_new))
     # print('Total neighourest neighbour vertices in original mesh :', len(indexs))
-    # # ds, inds = ctree.query(vertices_68_2d_new[0], 1)
-    # np.savetxt('../data/save-img/blender/vertices_sel_test1.txt', indexs_final_unique)
+    # ds, inds = ctree.query(vertices_68_2d_new[0], 1)
+    # np.savetxt('../data/save-img/blender/Iter2/vertices_sel_after_delaunay.txt', indexs_final_unique)
 
     plt.triplot(vertices_2d_new[:, 0], vertices_2d_new[:, 1], tris.simplices)
     plt.plot(vertices_2d_new[:, 0], vertices_2d_new[:, 1], 'ro')
@@ -116,6 +120,7 @@ def applyDelaunay():
 
 
 if __name__ == '__main__':
-    get_68_index_from500()
+    applyDelaunay()
+    # get_68_index_from500()
     # adjustKeypoints()
     # sampleMatplot()
