@@ -32,13 +32,13 @@ def exec_convert_onnx():
     importlib.reload(config)
     cfg = config.config
 
-    # checkpoint_path = '../checkpoints/mobile_net/Sep22/net_39.pth'
-    checkpoint_path = '../checkpoints/Sep20/net_39.pth'
+    # checkpoint_path = '../checkpoints/mobile_net/Oct21/net_39.pth'
+    checkpoint_path = '../checkpoints/resnet/Oct22/net_39.pth'
 
-    # onnx_save_path = '../checkpoints/mobile_net/Sep22/mobilenet.onnx'
-    onnx_save_path = '../checkpoints/Sep20/resnet.onnx'
+    # onnx_save_path = '../checkpoints/mobile_net/Oct21/mobilenet.onnx'
+    onnx_save_path = '../checkpoints/resnet/Oct22/resnet.onnx'
 
-    # net = timm.create_model('mobilenetv2_100', num_classes=1500)
+    # net = timm.create_model('mobilenetv2_100', num_classes=1560)
     net = get_network(cfg)
 
     net.load_state_dict(torch.load(checkpoint_path))
@@ -50,8 +50,8 @@ def exec_convert_onnx():
 
 def infer_onnx():
     import onnx
-    print(onnx.__version__   )
-    onnx_model = onnx.load('../checkpoints/mobile_net/Sep22/mobilenet.onnx')
+    print(onnx.__version__)
+    onnx_model = onnx.load('../checkpoints/mobile_net/Oct21/mobilenet.onnx')
     onnx.checker.check_model(onnx_model)
     print('checked')
 
