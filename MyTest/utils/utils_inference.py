@@ -201,7 +201,7 @@ def get_rect_mediapipe(image):
     pass
 
 
-def process_input(input, model, face_detector, cuda=True, image_info=None):
+def process_input(input, model, face_detector, cfg, cuda=True, image_info=None):
     ''' process image with crop operation.
     Args:
         input: (h,w,3) array or str(image path). image value range:1~255.
@@ -282,13 +282,19 @@ def process_input(input, model, face_detector, cuda=True, image_info=None):
     if cuda == True:
         cropped_pos = model(cropped_image.cuda())
         cropped_pos *= 255.  # (1,1500)
-        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        if cfg.heatmap3d:
+            cropped_pos = cropped_pos[0]
+        else:
+            cropped_pos = cropped_pos.view(1, cfg.keypoints, 3)[0]  # (500,3)
         cropped_pos = cropped_pos.detach().cpu().numpy()
 
     else:
         cropped_pos = model(cropped_image)
         cropped_pos *= 255.  # (1,1500)
-        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        if cfg.heatmap3d:
+            cropped_pos = cropped_pos[0]
+        else:
+            cropped_pos = cropped_pos.view(1, cfg.keypoints, 3)[0]  # (500,3)
         cropped_pos = cropped_pos.detach().numpy()
 
     # restore

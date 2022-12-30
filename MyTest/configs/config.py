@@ -67,6 +67,8 @@ config.lossw_project = 10.0
 
 config.model_name = 'mobilenetv2_100'
 config.N_CLASS = 500
+config.heatmap3d = True
+
 
 # Evaluation
 

@@ -49,3 +49,29 @@ epoch: 39 -> loss: 0.030615104362368584 -> running loss: 0.019693716305428596
 
 ***************************
 
+mobile_net oct21 -
+
+Result on AFLW-3D -
+[ 0, 30]	Mean: 2.862, Std: 1.079
+[30, 60]	Mean: 3.688, Std: 1.661
+[60, 90]	Mean: 4.762, Std: 3.029
+[ 0, 90]	Mean: 3.771, Std: 0.778
+Result on AFLW -
+[ 0, 30]	Mean: 4.046, Std: 1.932
+[30, 60]	Mean: 4.459, Std: 2.298
+[60, 90]	Mean: 5.206, Std: 2.287
+[ 0, 90]	Mean: 4.570, Std: 0.480
+
+resnet Oct22 -
+
+Result on AFLW-3D -
+[ 0, 30]	Mean: 2.882, Std: 1.065
+[30, 60]	Mean: 3.602, Std: 1.492
+[60, 90]	Mean: 4.824, Std: 3.962
+[ 0, 90]	Mean: 3.770, Std: 0.801
+Result on AFLW -
+[ 0, 30]	Mean: 4.098, Std: 2.087
+[30, 60]	Mean: 4.460, Std: 2.284
+[60, 90]	Mean: 5.232, Std: 2.688
+[ 0, 90]	Mean: 4.597, Std: 0.473
+

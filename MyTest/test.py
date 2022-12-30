@@ -4,6 +4,7 @@ import argparse
 import torch
 
 from models.network import get_network
+from models.network import Model3DHeatmap
 from benchmark_aflw2000 import ana as ana_aflw2000, calc_nme as calc_nme_aflw2000
 from benchmark_aflw import ana as ana_aflw, calc_nme as calc_nme_aflw
 from utils.util import get_config
@@ -11,13 +12,13 @@ from utils.utils_inference import process_input
 import timm
 
 
-def cal_nme_with_68kp(net, face_detector, kpt_filter, root, flist):
+def cal_nme_with_68kp(net, face_detector, kpt_filter, root, flist, cfg):
     pts68_fit_all = []
     null_index = []
     kpt = np.zeros((2, 68))
     for i, img_file in enumerate(flist):
         img_path = os.path.join(root, img_file)
-        vertices = process_input(img_path, net, face_detector)
+        vertices = process_input(img_path, net, face_detector, cfg)
         if vertices is None:
             pts68_fit_all.append(kpt)  # append the previous keypoint temporary work around
             null_index.append(i)
@@ -39,17 +40,19 @@ def main(args):
     kpt_filter = np.loadtxt(cfg.filtered_kpt_500).astype(int)
 
     # ---- load detectors
-    if cfg.is_dlib:
+    if True:  # cfg.is_dlib:
         import dlib
         detector_path = 'data/net-data/mmod_human_face_detector.dat'
         face_detector = dlib.cnn_face_detection_model_v1(
             detector_path)
 
     # load PRNet model
-    net = get_network(cfg).to(local_rank)
-    # net = timm.create_model('mobilenetv2_100', num_classes=1500).to(local_rank)
+    # net = get_network(cfg).to(local_rank)
+    # net = timm.create_model('mobilenetv2_100', num_classes=cfg.keypoints * 3).to(local_rank)
+    net = Model3DHeatmap(timmModel='mobilenetv2_100', keypoint_num=cfg.keypoints,
+                         imageNetNorm=True).to(local_rank)
     # print(net)
-    net.load_state_dict(torch.load('checkpoints/Sep20/net_39.pth'))
+    net.load_state_dict(torch.load('checkpoints/heatmap_3d/Dec28/net_39.pth'))
     net.eval()
 
     with torch.no_grad():
@@ -59,7 +62,7 @@ def main(args):
         with open(img_list_aflw2000) as f:
             flist_aflw2000 = [line.rstrip() for line in f]
         pts68_fit_all_aflw2000, null_index_aflw2000 = cal_nme_with_68kp(net, face_detector, kpt_filter,
-                                                                        root_aflw2000, flist_aflw2000)
+                                                                        root_aflw2000, flist_aflw2000, cfg)
         ana_aflw2000(calc_nme_aflw2000(pts68_fit_all_aflw2000), null_index_aflw2000)
 
         # Calculate NME AFLW
@@ -68,7 +71,7 @@ def main(args):
         with open(img_list_aflw) as f:
             flist_aflw = [line.rstrip() for line in f]
         pts68_fit_all_aflw, null_index_aflw = cal_nme_with_68kp(net, face_detector, kpt_filter,
-                                                                root_aflw, flist_aflw)
+                                                                root_aflw, flist_aflw, cfg)
         ana_aflw(calc_nme_aflw(pts68_fit_all_aflw), null_index_aflw)
 
 

@@ -4,6 +4,8 @@ import os
 import os.path as osp
 import numpy as np
 import pickle
+import torch
+from torch.nn import functional as F
 
 
 # def load_yaml(load_path):
@@ -54,3 +56,26 @@ def _load(fp):
         return np.load(fp)
     elif suffix == 'pkl':
         return pickle.load(open(fp, 'rb'))
+
+def soft_argmax_3d(heatmap3d):
+    batch_size = heatmap3d.shape[0]
+    depth, height, width = heatmap3d.shape[2:]
+    heatmap3d = heatmap3d.reshape((batch_size, -1, depth * height * width))
+    heatmap3d = F.softmax(heatmap3d, 2)
+    heatmap3d = heatmap3d.reshape((batch_size, -1, depth, height, width))
+
+    accu_x = heatmap3d.sum(dim=(2, 3))
+    accu_y = heatmap3d.sum(dim=(2, 4))
+    accu_z = heatmap3d.sum(dim=(3, 4))
+    device = heatmap3d.device
+
+    accu_x = accu_x * torch.arange(width).float().to(device)[None, None, :]
+    accu_y = accu_y * torch.arange(height).float().to(device)[None, None, :]
+    accu_z = accu_z * torch.arange(depth).float().to(device)[None, None, :]
+
+    accu_x = accu_x.sum(dim=2, keepdim=True)
+    accu_y = accu_y.sum(dim=2, keepdim=True)
+    accu_z = accu_z.sum(dim=2, keepdim=True)
+
+    coord_out = torch.cat((accu_x, accu_y, accu_z), dim=2)
+    return coord_out
