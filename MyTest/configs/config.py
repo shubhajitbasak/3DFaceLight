@@ -68,6 +68,13 @@ config.lossw_project = 10.0
 config.model_name = 'mobilenetv2_100'
 config.N_CLASS = 500
 config.heatmap3d = True
+config.kernel_size = 1
+config.final_conv_kernel_size = 1
+config.model_position_use_dw = False
+config.output_hm_shape = (8, 8, 8)
+config.imageNetNorm = False
+config.pretrained = True
+config.multiscale = True
 
 
 # Evaluation

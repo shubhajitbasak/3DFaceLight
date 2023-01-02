@@ -1,20 +1,6 @@
-import os
-import time
-# import timm
-import glob
-import numpy as np
-import os.path as osp
-
 import torch
-import torch.distributed as dist
 from torch import nn
-import torch.nn.functional as F
-from .modules import PositionNet
-from torchvision.transforms import functional as TVF
-
-
-# from .iresnet import get_model as arcface_get_model
-
+from MyTest.models.modules import PositionNet, PositionMultiscaleNet
 
 def kaiming_leaky_init(m):
     classname = m.__class__.__name__
@@ -200,25 +186,42 @@ def init_weights(m):
 
 
 class Model3DHeatmap(nn.Module):
-    def __init__(self, timmModel, keypoint_num, imageNetNorm=True, pretrained=False):
+    def __init__(self, cfg):
         super(Model3DHeatmap, self).__init__()
-        self.timmModel = TimmBackbone(timmModel, False)
+        self.cfg = cfg
+        self.timmModel = TimmBackbone(cfg.model_name, cfg.multiscale)
         self.backbone = self.timmModel
+
         # backbone = timm.create_model('mobilenetv3_small_050', pretrained=True, num_classes=0)
-        self.position_net = PositionNet(keypoint_num, self.backbone.last_channel)  # backbone.last_channel  backbone.num_features
-        self.imageNetNorm = imageNetNorm
-        if pretrained:
+        if cfg.multiscale:
+            self.position_net = PositionMultiscaleNet(self.cfg, self.backbone.channels)
+        else:
+            self.position_net = PositionNet(self.cfg, self.backbone.last_channel)  # backbone.last_channel  backbone.num_features
+        # self.imageNetNorm = self.cfg.imageNetNorm
+        if self.cfg.pretrained:
             self.backbone.init_weights()
             self.position_net.apply(init_weights)
 
     def forward(self, image):
-        if self.imageNetNorm:
-            mean = (0.485, 0.456, 0.406)
-            std = (0.229, 0.224, 0.225)
-            # image = (image - mean) / std
-            image = TVF.normalize(image, mean, std, False)
+        # if self.imageNetNorm:
+        #     mean = (0.485, 0.456, 0.406)
+        #     std = (0.229, 0.224, 0.225)
+        #     # image = (image - mean) / std
+        #     image = TVF.normalize(image, mean, std, False)
 
         img_feat = self.backbone(image)
         keypoints = self.position_net(img_feat)
 
         return keypoints
+
+
+def main():
+    from MyTest.configs import config
+    cfg = config.config
+    net = Model3DHeatmap(cfg)
+    x = net(torch.randn(1, 3, 256, 256))
+    print(x.shape)
+
+if __name__ == '__main__':
+    main()
+

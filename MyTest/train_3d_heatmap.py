@@ -51,9 +51,8 @@ def main(config_file):
 
     print('The number of training samples = {0}'.format(cfg.num_images))
 
-    net = Model3DHeatmap(timmModel='mobilenetv2_100', keypoint_num=cfg.keypoints,
-                         imageNetNorm=True, pretrained=True).to(local_rank)
-    summary(net, (3, 256, 256))
+    net = Model3DHeatmap(cfg).to(local_rank)
+    # summary(net, (3, 256, 256))
 
     # print(net(torch.randn(1, 3, 256, 256)).shape)
 
