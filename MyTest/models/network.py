@@ -210,17 +210,17 @@ class Model3DHeatmap(nn.Module):
         #     image = TVF.normalize(image, mean, std, False)
 
         img_feat = self.backbone(image)
-        keypoints = self.position_net(img_feat)
+        heatmap, keypoints = self.position_net(img_feat)
 
-        return keypoints
+        return heatmap, keypoints
 
 
 def main():
     from MyTest.configs import config
     cfg = config.config
     net = Model3DHeatmap(cfg)
-    x = net(torch.randn(1, 3, 256, 256))
-    print(x.shape)
+    hm, kp = net(torch.randn(1, 3, 256, 256))
+    print(hm.shape, kp.shape)
 
 if __name__ == '__main__':
     main()

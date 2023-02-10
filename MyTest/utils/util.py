@@ -79,3 +79,119 @@ def soft_argmax_3d(heatmap3d):
 
     coord_out = torch.cat((accu_x, accu_y, accu_z), dim=2)
     return coord_out
+
+
+def loss_heatmap(gt, pre):
+    """
+    https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_Fast_Human_Pose_Estimation_CVPR_2019_paper.pdf
+    \gt BxCx64x64
+    \pre BxCx64x64
+    """
+    # nn.MSELoss()
+    B, C, H, W = gt.shape
+    gt = gt.view(B, C, -1)
+    pre = pre.view(B, C, -1)
+    loss = torch.sum((pre - gt) * (pre - gt), axis=-1)  # Sum square error in each heatmap
+    loss = torch.mean(loss, axis=-1)  # MSE in 1 sample / batch over all heatmaps
+    loss = torch.mean(loss, axis=-1)  # Avarage MSE in 1 batch (.i.e many sample)
+    return loss
+
+
+def cross_loss_entropy_heatmap(p, g, pos_weight=torch.Tensor([1])):
+    """\ Bx 106x 256x256
+    """
+    BinaryCrossEntropyLoss = torch.nn.BCEWithLogitsLoss(reduction='mean', pos_weight=pos_weight)
+
+    B, C, W, H = p.shape
+
+    loss = BinaryCrossEntropyLoss(p, g)
+
+    return loss
+
+
+def adaptive_wing_loss(y_pred, y_true, w=14, epsilon=1.0, theta=0.5, alpha=2.1):
+    """
+    \ref https://arxiv.org/pdf/1904.07399.pdf
+    """
+    # Calculate A and C
+    p1 = (1 / (1 + (theta / epsilon) ** (alpha - y_true)))
+    p2 = (alpha - y_true) * ((theta / epsilon) ** (alpha - y_true - 1)) * (1 / epsilon)
+    A = w * p1 * p2
+    C = theta * A - w * torch.log(1 + (theta / epsilon) ** (alpha - y_true))
+
+    # Asolute value
+    absolute_x = torch.abs(y_true - y_pred)
+
+    # Adaptive wingloss
+    losses = torch.where(theta > absolute_x, w * torch.log(1.0 + (absolute_x / epsilon) ** (alpha - y_true)),
+                         A * absolute_x - C)
+    losses = torch.sum(losses, axis=[2, 3])
+    losses = torch.mean(losses)
+
+    return losses  # Mean wingloss for each sample in batch
+
+
+def heatmap2topkheatmap(heatmap, topk=7):
+    """
+    \ Find topk value in each heatmap and calculate softmax for them.
+    \ Another non topk points will be zero.
+    \Based on that https://discuss.pytorch.org/t/how-to-keep-only-top-k-percent-values/83706
+    """
+    N, C, H, W = heatmap.shape
+
+    # Get topk points in each heatmap
+    # And using softmax for those score
+    heatmap = heatmap.view(N, C, 1, -1)
+
+    score, index = heatmap.topk(topk, dim=-1)
+    score = F.softmax(score, dim=-1)
+    heatmap = F.softmax(heatmap, dim=-1)
+
+    # Assign non-topk zero values
+    # Assign topk with calculated softmax value
+    res = torch.zeros(heatmap.shape)
+    res = res.scatter(-1, index, score)
+
+    # Reshape to the original size
+    heatmap = res.view(N, C, H, W)
+    # heatmap = heatmap.view(N, C, H, W)
+
+    return heatmap
+
+
+def mean_topk_activation(heatmap, topk=7):
+    """
+    \ Find topk value in each heatmap and calculate softmax for them.
+    \ Another non topk points will be zero.
+    \Based on that https://discuss.pytorch.org/t/how-to-keep-only-top-k-percent-values/83706
+    """
+    N, C, H, W = heatmap.shape
+
+    # Get topk points in each heatmap
+    # And using softmax for those score
+    heatmap = heatmap.view(N, C, 1, -1)
+
+    score, index = heatmap.topk(topk, dim=-1)
+    score = F.sigmoid(score)
+
+    return score
+
+
+def heatmap2softmaxheatmap(heatmap):
+    N, C, H, W = heatmap.shape
+
+    # Get topk points in each heatmap
+    # And using softmax for those score
+    heatmap = heatmap.view(N, C, 1, -1)
+    heatmap = F.softmax(heatmap, dim=-1)
+
+    # Reshape to the original size
+    heatmap = heatmap.view(N, C, H, W)
+
+    return heatmap
+
+
+def heatmap2sigmoidheatmap(heatmap):
+    heatmap = F.sigmoid(heatmap)
+
+    return heatmap

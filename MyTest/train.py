@@ -106,14 +106,14 @@ def main(config_file):
             # pred_verts, pred_points2d = preds.split([1220 * 3, 1220 * 2], dim=1)
             pred_verts = preds.view(cfg.batch_size, 500, 3)
             kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
-            pred_kpt = pred_verts[:,kpt_filer_index,:]
+            pred_kpt = pred_verts[:, kpt_filer_index, :]
             # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
             L3 = WingLoss_1()
             # loss1 = F.l1_loss(pred_verts, label_verts)
             loss2 = F.mse_loss(pred_kpt, label_kpt)
             loss3 = L3(pred_verts, label_verts)
 
-            loss = 1.5*loss3  # + 0.2*loss2
+            loss = 1.5 * loss3  # + 0.2*loss2
 
             # -------- backward + optimize --------
             loss.backward()

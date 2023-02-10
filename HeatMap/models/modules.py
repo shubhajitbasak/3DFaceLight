@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
-from MyTest.utils.util import soft_argmax_3d
-from MyTest.models.layers import make_conv_layers, make_dwconv_layers
+from HeatMap.utils.heatmap_3d import soft_argmax_3d
+from HeatMap.models.layers import make_conv_layers, make_dwconv_layers
 
 
 class PositionNet(nn.Module):
     def __init__(self, cfg, in_channel):
         super(PositionNet, self).__init__()
-        self.joint_num = cfg.keypoints
+        self.joint_num = cfg.num_verts
         if cfg.model_position_use_dw:
             self.conv = make_dwconv_layers([in_channel, self.joint_num * self.cfg.output_hm_shape[0]], kernel=3,
                                            stride=1, padding=1, bnrelu_final=False)
@@ -74,4 +74,3 @@ class PositionMultiscaleNet(nn.Module):
 
         joint_coord = soft_argmax_3d(joint_hm)
         return joint_hm, joint_coord
-

@@ -47,12 +47,12 @@ def main(args):
             detector_path)
 
     # load PRNet model
-    # net = get_network(cfg).to(local_rank)
+    net = get_network(cfg).to(local_rank)
     # net = timm.create_model('mobilenetv2_100', num_classes=cfg.keypoints * 3).to(local_rank)
-    net = Model3DHeatmap(timmModel='mobilenetv2_100', keypoint_num=cfg.keypoints,
-                         imageNetNorm=True).to(local_rank)
+    # net = Model3DHeatmap(timmModel='mobilenetv2_100', keypoint_num=cfg.keypoints,
+    #                      imageNetNorm=True).to(local_rank)
     # print(net)
-    net.load_state_dict(torch.load('checkpoints/heatmap_3d/Dec28/net_39.pth'))
+    net.load_state_dict(torch.load('checkpoints/resnet/Oct22/net_39.pth'))
     net.eval()
 
     with torch.no_grad():

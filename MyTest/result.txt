@@ -62,6 +62,8 @@ Result on AFLW -
 [60, 90]	Mean: 5.206, Std: 2.287
 [ 0, 90]	Mean: 4.570, Std: 0.480
 
+gmacs: 0.393256192 , gflops: 0.196628096, params: 4.18812M
+
 resnet Oct22 -
 
 Result on AFLW-3D -
@@ -75,3 +77,4 @@ Result on AFLW -
 [60, 90]	Mean: 5.232, Std: 2.688
 [ 0, 90]	Mean: 4.597, Std: 0.473
 
+gmacs: 5.135914496 , gflops: 2.567957248, params: 16.032344M

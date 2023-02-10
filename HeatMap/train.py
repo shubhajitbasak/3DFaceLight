@@ -1,35 +1,34 @@
 import argparse
 import os
-from torchsummary import summary
-import numpy as np
 import torch
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import datetime
 from tqdm import tqdm
 from time import sleep
+from HeatMap.conf import conf
 
-from utils.util import get_config, heatmap2sigmoidheatmap, adaptive_wing_loss, \
-                    cross_loss_entropy_heatmap, heatmap2topkheatmap, heatmap2softmaxheatmap, \
-                    loss_heatmap
-from lr_scheduler import get_scheduler
-from utils.utils_logging import AverageMeter
-from datasets.wlpuv_dataset import wlpuvDatasets
-from losses.wing_loss import WingLoss
-from models.network import Model3DHeatmap
+from utils.loss import loss_heatmap, adaptive_wing_loss
+from MyTest.lr_scheduler import get_scheduler
+# from utils.utils_logging import AverageMeter
+from MyTest.datasets.wlpuv_dataset import wlpuvDatasets
+from utils.heatmap_3d import heatmap2sigmoidheatmap, cross_loss_entropy_heatmap,\
+    heatmap2topkheatmap, heatmap2softmaxheatmap, lmks2heatmap3d
+# from losses.wing_loss import WingLoss
+from models.networks import Model3DHeatmap
 
 
 def main(config_file):
     now = datetime.datetime.now()
     chkFolder = now.strftime("%b%d")
-    if not os.path.exists(os.path.join('checkpoints/heatmap_3d', chkFolder)):
-        os.makedirs(os.path.join('checkpoints/heatmap_3d', chkFolder), exist_ok=True)
 
-    cfg = get_config(config_file)  # parse_configuration(config_file)
+    cfg = conf.config
 
     world_size = 1
     local_rank = args.local_rank
     torch.cuda.set_device(0)
+
+    if not os.path.exists(os.path.join('checkpoints/heatmap_3d', chkFolder)):
+        os.makedirs(os.path.join('checkpoints/heatmap_3d', chkFolder), exist_ok=True)
 
     print('Initializing dataset...')
     train_set = wlpuvDatasets(cfg)
@@ -54,9 +53,6 @@ def main(config_file):
     print('The number of training samples = {0}'.format(cfg.num_images))
 
     net = Model3DHeatmap(cfg).to(local_rank)
-    # summary(net, (3, 256, 256))
-
-    # print(net(torch.randn(1, 3, 256, 256)).shape)
 
     net.train()
 
@@ -82,18 +78,6 @@ def main(config_file):
     scheduler = get_scheduler(opt, cfg)
 
     start_epoch = 0
-    total_step = cfg.total_steps
-
-    loss = {
-        'Loss': AverageMeter(),
-    }
-
-    # l1loss = nn.L1Loss()
-
-    L3 = WingLoss()  # AdaptiveWingLoss()
-
-    # L4 = torch.nn.GaussianNLLLoss()
-
     global_step = 0
 
     for epoch in range(start_epoch, cfg.num_epochs):
@@ -103,36 +87,30 @@ def main(config_file):
                 tepoch.set_description(f"Epoch {epoch}")
 
                 global_step += 1
+                # Image
                 img = value['Image'].to(local_rank)
-                label_verts = value['vertices_filtered'].to(local_rank)
+
+                # keypoints denormalized
+                lmksGT = value['vertices_filtered'].to(local_rank)
+                lmksGT = lmksGT * 255
                 label_kpt = value['kpt'].to(local_rank)
 
-                # zero the parameter gradients
-                opt.zero_grad()
+                # Generate GT heatmap by randomized rounding
+                heatGT = lmks2heatmap3d(lmksGT, 16, cfg.random_round, cfg.random_round_with_gaussian)
 
                 # -------- forward --------
-                preds = net(img)
-                pred_verts = preds
-                # pred_verts = pred_verts.view(cfg.batch_size, cfg.keypoints, 3)
-                # kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
-                # pred_kpt = pred_verts[:, kpt_filer_index, :]
-                # # loss1 = F.l1_loss(pred_verts, label_verts)
-                # loss2 = F.mse_loss(pred_kpt, label_kpt)
-                # loss3 = L3(pred_verts, label_verts)
-                # # loss4 = L4(label_verts, pred_verts, variance)
+                heatPRED, kpPRED = net(img)
 
-                # loss = 1.5 * loss3 + 0.5 * loss2
-
-                if args.random_round_with_gaussian:
+                if cfg.random_round_with_gaussian:
                     heatPRED = heatmap2sigmoidheatmap(heatPRED.to('cpu'))
                     loss = adaptive_wing_loss(heatPRED, heatGT)
 
-                elif args.random_round:  # Using cross loss entropy
+                elif cfg.random_round:  # Using cross loss entropy
                     heatPRED = heatPRED.to('cpu')
                     loss = cross_loss_entropy_heatmap(heatPRED, heatGT, pos_weight=torch.Tensor([args.pos_weight]))
                 else:
                     # MSE loss
-                    if (args.get_topk_in_pred_heats_training):
+                    if (cfg.get_topk_in_pred_heats_training):
                         heatPRED = heatmap2topkheatmap(heatPRED.to('cpu'))
                     else:
                         heatPRED = heatmap2softmaxheatmap(heatPRED.to('cpu'))
@@ -143,6 +121,8 @@ def main(config_file):
 
 
                 # -------- backward + optimize --------
+                # zero the parameter gradients
+                opt.zero_grad()
                 loss.backward()
                 opt.step()
                 scheduler.step()
