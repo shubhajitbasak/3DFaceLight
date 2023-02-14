@@ -1,10 +1,11 @@
 # https://github.com/lhjthp/HNCT
 # A Hybrid Network of CNN and Transformer for Lightweight Image Super-Resolution
+# gmacs: 21.704964608 , gflops: 10.852482304, params: 0.363848M
 # https://openaccess.thecvf.com/content/CVPR2022W/NTIRE/papers/Fang_A_Hybrid_Network_of_CNN_and_Transformer_for_Lightweight_Image_CVPRW_2022_paper.pdf
 
 import torch
 import torch.nn as nn
-import hnctBlocks as B
+import LightExp.Model.hnctBlocks as B
 def make_model(args, parent=False):
     model = HNCT()
     return model

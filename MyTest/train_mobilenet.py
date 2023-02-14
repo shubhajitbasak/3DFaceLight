@@ -7,23 +7,25 @@ import timm
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import datetime
+from time import sleep
 
+from tqdm import tqdm
+# from LightExp.Model.sparnet import SPARNet
 from utils.util import get_config
-from models.network import get_network
+# from models.network import get_network
 from lr_scheduler import get_scheduler
 from utils.utils_logging import AverageMeter, init_logging
 from datasets.wlpuv_dataset import wlpuvDatasets
 from losses.wing_loss import WingLoss, AdaptiveWingLoss
-from losses.gaussian_nll import Gaussian_NLL_Loss
+# from losses.gaussian_nll import Gaussian_NLL_Loss
 
 
 def main(config_file):
     now = datetime.datetime.now()
-    chkFolder = now.strftime("%b%d")
-    if not os.path.exists(os.path.join('checkpoints/mobile_net', chkFolder)):
-        os.makedirs(os.path.join('checkpoints/mobile_net', chkFolder), exist_ok=True)
-
     cfg = get_config(config_file)  # parse_configuration(config_file)
+    chkFolder = os.path.join('checkpoints', cfg.model_name, now.strftime("%b%d"))
+    if not os.path.exists(chkFolder):
+        os.makedirs(chkFolder, exist_ok=True)
 
     world_size = 1
     local_rank = args.local_rank
@@ -56,8 +58,9 @@ def main(config_file):
     # starting_epoch = cfg.load_checkpoint + 1
     # num_epochs = cfg.max_epochs
 
-    net = timm.create_model('mobilenetv2_100', pretrained=True, num_classes=cfg.keypoints * 3).to(local_rank)
-    summary(net, (3, 256, 256))
+    net = timm.create_model('mobilenetv2_100', pretrained=True, num_classes=cfg.num_verts * 3).to(local_rank)
+    # net = SPARNet(num_classes=cfg.num_verts * 3).to(local_rank)
+    # summary(net, (3, 256, 256))
 
     net.train()
 
@@ -99,46 +102,50 @@ def main(config_file):
 
     for epoch in range(start_epoch, cfg.num_epochs):
         running_loss = 0.0
-        for step, value in enumerate(train_loader):
-            global_step += 1
-            img = value['Image'].to(local_rank)
-            dloss = {}
-            assert cfg.task == 0
-            label_verts = value['vertices_filtered'].to(local_rank)
-            label_kpt = value['kpt'].to(local_rank)
-            # label_points2d = value['points2d'].to(local_rank)
+        with tqdm(train_loader, unit="batch") as tepoch:
+            for step, value in enumerate(tepoch):
+                tepoch.set_description(f"Epoch {epoch}")
 
-            # zero the parameter gradients
-            opt.zero_grad()
+                global_step += 1
+                img = value['Image'].to(local_rank)
 
-            # -------- forward --------
-            preds = net(img)
-            # pred_verts, variance = preds.split([500 * 3, 500 * 1], dim=1)
-            pred_verts = preds
-            pred_verts = pred_verts.view(cfg.batch_size, cfg.keypoints, 3)
-            kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
-            pred_kpt = pred_verts[:, kpt_filer_index, :]
-            # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
-            # loss1 = F.l1_loss(pred_verts, label_verts)
-            loss2 = F.mse_loss(pred_kpt, label_kpt)
-            loss3 = L3(pred_verts, label_verts)
-            # loss4 = L4(label_verts, pred_verts, variance)
+                label_verts = value['vertices_filtered'].to(local_rank)
+                label_kpt = value['kpt'].to(local_rank)
+                # label_points2d = value['points2d'].to(local_rank)
 
-            loss = 1.5 * loss3 + 0.5 * loss2
 
-            # -------- backward + optimize --------
-            loss.backward()
-            opt.step()
-            scheduler.step()
 
-            running_loss += loss.item() * cfg.batch_size
-            print('batch loss :', loss.item())
+                # -------- forward --------
+                preds = net(img)
+                # pred_verts, variance = preds.split([500 * 3, 500 * 1], dim=1)
+                pred_verts = preds
+                pred_verts = pred_verts.view(cfg.batch_size, cfg.num_verts, 3)
+                kpt_filer_index = torch.tensor(np.loadtxt(cfg.filtered_kpt_500).astype(int))
+                pred_kpt = pred_verts[:, kpt_filer_index, :]
+                # pred_points2d = pred_points2d.view(cfg.batch_size, 1220, 2)
+                # loss1 = F.l1_loss(pred_verts, label_verts)
+                loss2 = F.mse_loss(pred_kpt, label_kpt)
+                loss3 = L3(pred_verts, label_verts)
+                # loss4 = L4(label_verts, pred_verts, variance)
+
+                loss = 1.5 * loss3 + 0.5 * loss2
+
+                # -------- backward + optimize --------
+                # zero the parameter gradients
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+                scheduler.step()
+
+                running_loss += loss.item() * cfg.batch_size
+                tepoch.set_postfix(loss=loss.item())
+                sleep(0.1)
 
         epoch_loss = running_loss / cfg.num_images
         print('epoch: {0} -> loss: {1} -> running loss: {2}'.format(epoch, loss.item(), epoch_loss))
 
         save_filename = 'net_%s.pth' % epoch
-        save_path = os.path.join('checkpoints/mobile_net', chkFolder, save_filename)
+        save_path = os.path.join(chkFolder, save_filename)
         torch.save(net.cpu().state_dict(), save_path)
         net.to(local_rank)
 

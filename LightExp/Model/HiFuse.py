@@ -1,5 +1,6 @@
 #  https://github.com/huoxiangzuo/HiFuse/
 # HiFuse: Hierarchical Multi-Scale Feature Fusion Network for Medical Image Classification
+# tiny = gmacs: 17.444438718 , gflops: 8.722219359, params: 119.24116M
 # https://arxiv.org/pdf/2209.10218.pdf
 import torch
 import torch.nn as nn

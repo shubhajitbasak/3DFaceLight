@@ -4,6 +4,8 @@ config = edict()
 
 config.task = 0
 
+config.model_name = 'mobilenetv2_100' # Sparnet
+
 config.dataset_name = 'wlpuv'
 config.dataset_path = '/mnt/sata/data/300W_LP_UV'
 # #    num_samples: 61225 #122450
@@ -29,7 +31,7 @@ config.filtered_68_kpt = 'data/vertices_68.txt'
 config.filtered_kpt_500 = 'data/vertices_68_fil_520.txt'
 config.resolution_inp = 256
 config.resolution_op = 256
-config.keypoints = 520
+# config.keypoints = 520
 
 config.network = "resnet_jmlr"
 config.is_train = True
@@ -65,7 +67,6 @@ config.lossw_project = 10.0
 
 # model
 
-config.model_name = 'mobilenetv2_100'
 config.N_CLASS = 500
 config.heatmap3d = False
 config.kernel_size = 1
@@ -79,7 +80,7 @@ config.multiscale = False
 
 # Evaluation
 
-config.use_cam = False
+config.use_cam = True
 config.eval_img_path = '/mnt/sata/data/AFLW2000-3D/AFLW2000'
 config.is_dlib = False
 config.is_mp = True

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 import torch
 import torch.nn.functional as F
-import SwinT
+import LightExp.Model.SwinT as SwinT
 
 
 def conv_layer(in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1):

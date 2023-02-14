@@ -18,6 +18,7 @@ from utils.util import get_config
 from models.network import get_network
 
 
+
 def main(config_file):
     cfg = get_config(config_file)
     local_rank = args.local_rank
@@ -34,7 +35,7 @@ def main(config_file):
         import mediapipe as mp
         mp_face_detection = mp.solutions.face_detection
     # checkpoint_path = 'checkpoints/mobilenet/net_39.pth'
-    checkpoint_path = 'checkpoints/Sep20/net_39.pth'
+    checkpoint_path = 'checkpoints/resnet/Oct22/net_39.pth'
 
     # load PRNet model
     # net = get_network(cfg).to(local_rank)

@@ -476,13 +476,13 @@ def process_input_mp(input, model, mp_face_detection, cuda=True, image_info=None
     if cuda == True:
         cropped_pos = model(cropped_image.cuda())
         cropped_pos *= 255.  # (1,1500)
-        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.view(1, 520, 3)[0]  # (500,3)
         cropped_pos = cropped_pos.detach().cpu().numpy()
 
     else:
         cropped_pos = model(cropped_image)
         cropped_pos *= 255.  # (1,1500)
-        cropped_pos = cropped_pos.view(1, 500, 3)[0]  # (500,3)
+        cropped_pos = cropped_pos.view(1, 520, 3)[0]  # (500,3)
         cropped_pos = cropped_pos.detach().numpy()
 
     # restore

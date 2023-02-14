@@ -124,11 +124,11 @@ class MobileNetV2(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
-        x = self.features(x)
-        x = self.conv(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.classifier(x)
+        x = self.features(x)  # BX320X8X8
+        x = self.conv(x)  # BX1280X8X8
+        x = self.avgpool(x)  # BX1280X1X1
+        x = x.view(x.size(0), -1)  # BX1280
+        x = self.classifier(x)  # BX1000
         return x
 
     def _initialize_weights(self):

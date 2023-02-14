@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 import torch
 
+from LightExp.Model.sparnet import SPARNet
 from models.network import get_network
 from models.network import Model3DHeatmap
 from benchmark_aflw2000 import ana as ana_aflw2000, calc_nme as calc_nme_aflw2000
@@ -47,12 +48,13 @@ def main(args):
             detector_path)
 
     # load PRNet model
-    net = get_network(cfg).to(local_rank)
+    # net = get_network(cfg).to(local_rank)
     # net = timm.create_model('mobilenetv2_100', num_classes=cfg.keypoints * 3).to(local_rank)
     # net = Model3DHeatmap(timmModel='mobilenetv2_100', keypoint_num=cfg.keypoints,
     #                      imageNetNorm=True).to(local_rank)
+    net = SPARNet(num_classes=cfg.keypoints * 3).to(local_rank)
     # print(net)
-    net.load_state_dict(torch.load('checkpoints/resnet/Oct22/net_39.pth'))
+    net.load_state_dict(torch.load('checkpoints/Sparnet/Feb12/net_25.pth'))
     net.eval()
 
     with torch.no_grad():
